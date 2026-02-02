@@ -7,16 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04A10DE72F305165002BA8F4 /* PHASE1_COMPLETE 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE22F305165002BA8F4 /* PHASE1_COMPLETE 2.md */; };
-		04A10DE82F305165002BA8F4 /* INDEX 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE12F305165002BA8F4 /* INDEX 2.md */; };
-		04A10DE92F305165002BA8F4 /* COMPLETION_REPORT 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DDF2F305165002BA8F4 /* COMPLETION_REPORT 2.md */; };
-		04A10DEA2F305165002BA8F4 /* QUICKSTART 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE42F305165002BA8F4 /* QUICKSTART 2.md */; };
-		04A10DEB2F305165002BA8F4 /* START_HERE 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE62F305165002BA8F4 /* START_HERE 2.md */; };
-		04A10DEC2F305165002BA8F4 /* IMPLEMENTATION_CHECKLIST 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE02F305165002BA8F4 /* IMPLEMENTATION_CHECKLIST 2.md */; };
-		04A10DED2F305165002BA8F4 /* PROJECT_SUMMARY 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE32F305165002BA8F4 /* PROJECT_SUMMARY 2.md */; };
-		04A10DEE2F305165002BA8F4 /* SETUP 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 04A10DE52F305165002BA8F4 /* SETUP 2.md */; };
 		04A10DF32F3055B9002BA8F4 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04A10DF22F3055B9002BA8F4 /* StoreKit.framework */; };
 		04A10DF62F30564C002BA8F4 /* Clerk in Frameworks */ = {isa = PBXBuildFile; productRef = 04A10DF52F30564C002BA8F4 /* Clerk */; };
+		04E976F22F30611800D369BC /* INDEX.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976EB2F30611800D369BC /* INDEX.md */; };
+		04E976F32F30611800D369BC /* PROJECT_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976ED2F30611800D369BC /* PROJECT_SUMMARY.md */; };
+		04E976F42F30611800D369BC /* START_HERE.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976F12F30611800D369BC /* START_HERE.md */; };
+		04E976F52F30611800D369BC /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976EF2F30611800D369BC /* README.md */; };
+		04E976F62F30611800D369BC /* IMPLEMENTATION_CHECKLIST.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976EA2F30611800D369BC /* IMPLEMENTATION_CHECKLIST.md */; };
+		04E976F72F30611800D369BC /* PHASE1_COMPLETE.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976EC2F30611800D369BC /* PHASE1_COMPLETE.md */; };
+		04E976F82F30611800D369BC /* COMPLETION_REPORT.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976E92F30611800D369BC /* COMPLETION_REPORT.md */; };
+		04E976F92F30611800D369BC /* QUICKSTART.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976EE2F30611800D369BC /* QUICKSTART.md */; };
+		04E976FA2F30611800D369BC /* SETUP.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E976F02F30611800D369BC /* SETUP.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,16 +41,16 @@
 		04A10D0D2F30505A002BA8F4 /* EquityLabs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EquityLabs.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04A10D1F2F30505B002BA8F4 /* EquityLabsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EquityLabsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		04A10D292F30505B002BA8F4 /* EquityLabsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EquityLabsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		04A10DDC2F30513A002BA8F4 /* README 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "README 2.md"; sourceTree = "<group>"; };
-		04A10DDF2F305165002BA8F4 /* COMPLETION_REPORT 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "COMPLETION_REPORT 2.md"; sourceTree = "<group>"; };
-		04A10DE02F305165002BA8F4 /* IMPLEMENTATION_CHECKLIST 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "IMPLEMENTATION_CHECKLIST 2.md"; sourceTree = "<group>"; };
-		04A10DE12F305165002BA8F4 /* INDEX 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "INDEX 2.md"; sourceTree = "<group>"; };
-		04A10DE22F305165002BA8F4 /* PHASE1_COMPLETE 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "PHASE1_COMPLETE 2.md"; sourceTree = "<group>"; };
-		04A10DE32F305165002BA8F4 /* PROJECT_SUMMARY 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "PROJECT_SUMMARY 2.md"; sourceTree = "<group>"; };
-		04A10DE42F305165002BA8F4 /* QUICKSTART 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "QUICKSTART 2.md"; sourceTree = "<group>"; };
-		04A10DE52F305165002BA8F4 /* SETUP 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "SETUP 2.md"; sourceTree = "<group>"; };
-		04A10DE62F305165002BA8F4 /* START_HERE 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "START_HERE 2.md"; sourceTree = "<group>"; };
 		04A10DF22F3055B9002BA8F4 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		04E976E92F30611800D369BC /* COMPLETION_REPORT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = COMPLETION_REPORT.md; sourceTree = "<group>"; };
+		04E976EA2F30611800D369BC /* IMPLEMENTATION_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = IMPLEMENTATION_CHECKLIST.md; sourceTree = "<group>"; };
+		04E976EB2F30611800D369BC /* INDEX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = INDEX.md; sourceTree = "<group>"; };
+		04E976EC2F30611800D369BC /* PHASE1_COMPLETE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PHASE1_COMPLETE.md; sourceTree = "<group>"; };
+		04E976ED2F30611800D369BC /* PROJECT_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PROJECT_SUMMARY.md; sourceTree = "<group>"; };
+		04E976EE2F30611800D369BC /* QUICKSTART.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = QUICKSTART.md; sourceTree = "<group>"; };
+		04E976EF2F30611800D369BC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		04E976F02F30611800D369BC /* SETUP.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SETUP.md; sourceTree = "<group>"; };
+		04E976F12F30611800D369BC /* START_HERE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = START_HERE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -193,16 +194,16 @@
 				04A10D222F30505B002BA8F4 /* EquityLabsTests */,
 				04A10D2C2F30505B002BA8F4 /* EquityLabsUITests */,
 				04A10D0E2F30505A002BA8F4 /* Products */,
-				04A10DDF2F305165002BA8F4 /* COMPLETION_REPORT 2.md */,
-				04A10DE02F305165002BA8F4 /* IMPLEMENTATION_CHECKLIST 2.md */,
-				04A10DE12F305165002BA8F4 /* INDEX 2.md */,
-				04A10DE22F305165002BA8F4 /* PHASE1_COMPLETE 2.md */,
-				04A10DE32F305165002BA8F4 /* PROJECT_SUMMARY 2.md */,
-				04A10DE42F305165002BA8F4 /* QUICKSTART 2.md */,
-				04A10DDC2F30513A002BA8F4 /* README 2.md */,
-				04A10DE52F305165002BA8F4 /* SETUP 2.md */,
-				04A10DE62F305165002BA8F4 /* START_HERE 2.md */,
 				04A10DF12F3055B9002BA8F4 /* Frameworks */,
+				04E976E92F30611800D369BC /* COMPLETION_REPORT.md */,
+				04E976EA2F30611800D369BC /* IMPLEMENTATION_CHECKLIST.md */,
+				04E976EB2F30611800D369BC /* INDEX.md */,
+				04E976EC2F30611800D369BC /* PHASE1_COMPLETE.md */,
+				04E976ED2F30611800D369BC /* PROJECT_SUMMARY.md */,
+				04E976EE2F30611800D369BC /* QUICKSTART.md */,
+				04E976EF2F30611800D369BC /* README.md */,
+				04E976F02F30611800D369BC /* SETUP.md */,
+				04E976F12F30611800D369BC /* START_HERE.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -348,14 +349,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04A10DE72F305165002BA8F4 /* PHASE1_COMPLETE 2.md in Resources */,
-				04A10DE82F305165002BA8F4 /* INDEX 2.md in Resources */,
-				04A10DE92F305165002BA8F4 /* COMPLETION_REPORT 2.md in Resources */,
-				04A10DEA2F305165002BA8F4 /* QUICKSTART 2.md in Resources */,
-				04A10DEB2F305165002BA8F4 /* START_HERE 2.md in Resources */,
-				04A10DEC2F305165002BA8F4 /* IMPLEMENTATION_CHECKLIST 2.md in Resources */,
-				04A10DED2F305165002BA8F4 /* PROJECT_SUMMARY 2.md in Resources */,
-				04A10DEE2F305165002BA8F4 /* SETUP 2.md in Resources */,
+				04E976F22F30611800D369BC /* INDEX.md in Resources */,
+				04E976F32F30611800D369BC /* PROJECT_SUMMARY.md in Resources */,
+				04E976F42F30611800D369BC /* START_HERE.md in Resources */,
+				04E976F52F30611800D369BC /* README.md in Resources */,
+				04E976F62F30611800D369BC /* IMPLEMENTATION_CHECKLIST.md in Resources */,
+				04E976F72F30611800D369BC /* PHASE1_COMPLETE.md in Resources */,
+				04E976F82F30611800D369BC /* COMPLETION_REPORT.md in Resources */,
+				04E976F92F30611800D369BC /* QUICKSTART.md in Resources */,
+				04E976FA2F30611800D369BC /* SETUP.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
