@@ -1,0 +1,111 @@
+import Foundation
+
+// MARK: - Portfolio
+struct Portfolio: Codable {
+    var stocks: [Stock]
+    var lastSynced: Date?
+    var currency: Currency
+
+    var totalValue: Double {
+        stocks.reduce(0) { $0 + $1.currentValue }
+    }
+
+    var totalCost: Double {
+        stocks.reduce(0) { $0 + $1.totalCost }
+    }
+
+    var totalProfitLoss: Double {
+        totalValue - totalCost
+    }
+
+    var totalProfitLossPercentage: Double {
+        guard totalCost > 0 else { return 0 }
+        return (totalProfitLoss / totalCost) * 100
+    }
+
+    var totalDayChange: Double? {
+        let changes = stocks.compactMap { stock -> Double? in
+            guard let dayChange = stock.dayChange else { return nil }
+            return dayChange * stock.totalShares
+        }
+        guard !changes.isEmpty else { return nil }
+        return changes.reduce(0, +)
+    }
+
+    var totalDayChangePercentage: Double? {
+        guard let dayChange = totalDayChange, totalValue > 0 else { return nil }
+        let previousValue = totalValue - dayChange
+        guard previousValue > 0 else { return nil }
+        return (dayChange / previousValue) * 100
+    }
+
+    init(stocks: [Stock] = [], lastSynced: Date? = nil, currency: Currency = .usd) {
+        self.stocks = stocks
+        self.lastSynced = lastSynced
+        self.currency = currency
+    }
+}
+
+// MARK: - PortfolioSummary
+struct PortfolioSummary: Codable {
+    let totalValue: Double
+    let totalCost: Double
+    let totalProfitLoss: Double
+    let totalProfitLossPercentage: Double
+    let totalDayChange: Double?
+    let totalDayChangePercentage: Double?
+    let stockCount: Int
+    let currency: Currency
+    let lastUpdated: Date
+
+    init(portfolio: Portfolio) {
+        self.totalValue = portfolio.totalValue
+        self.totalCost = portfolio.totalCost
+        self.totalProfitLoss = portfolio.totalProfitLoss
+        self.totalProfitLossPercentage = portfolio.totalProfitLossPercentage
+        self.totalDayChange = portfolio.totalDayChange
+        self.totalDayChangePercentage = portfolio.totalDayChangePercentage
+        self.stockCount = portfolio.stocks.count
+        self.currency = portfolio.currency
+        self.lastUpdated = Date()
+    }
+}
+
+// MARK: - Currency
+enum Currency: String, Codable, CaseIterable {
+    case usd = "USD"
+    case cad = "CAD"
+
+    var symbol: String {
+        switch self {
+        case .usd: return "$"
+        case .cad: return "C$"
+        }
+    }
+
+    var name: String {
+        switch self {
+        case .usd: return "US Dollar"
+        case .cad: return "Canadian Dollar"
+        }
+    }
+}
+
+// MARK: - PortfolioUpdate
+struct PortfolioUpdate: Codable {
+    let stocks: [String: StockData]
+
+    struct StockData: Codable {
+        let symbol: String
+        let name: String
+        let lots: [LotData]
+    }
+
+    struct LotData: Codable {
+        let shares: Double
+        let pricePerShare: Double
+        let purchaseDate: String
+        let currency: String
+        let notes: String?
+    }
+}
