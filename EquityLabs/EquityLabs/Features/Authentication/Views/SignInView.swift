@@ -1,8 +1,14 @@
 import SwiftUI
+import Clerk
 
 // MARK: - SignInView
 struct SignInView: View {
+    @Environment(\.clerk) private var clerk
+    @EnvironmentObject var authService: AuthService
     @EnvironmentObject var authManager: AuthManager
+    @State private var showAuthSheet = false
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     var body: some View {
         ZStack {
@@ -36,25 +42,63 @@ struct SignInView: View {
 
                 // Sign in button
                 VStack(spacing: 16) {
+                    // Status indicator
+                    if !authService.isInitialized {
+                        HStack {
+                            ProgressView()
+                                .tint(.white)
+                            Text("Initializing Clerk...")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                        }
+                        .padding()
+                    }
+
+                    if let error = authService.error {
+                        Text("⚠️ \(error.localizedDescription)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding()
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 32)
+                    }
+
                     Button {
+                        if !authService.isInitialized {
+                            errorMessage = "Clerk is not initialized. Please check your CLERK_PUBLISHABLE_KEY configuration."
+                            showError = true
+                            return
+                        }
+                        showAuthSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.badge.key.fill")
+                            Text("Sign In with Clerk")
+                                .font(.headline)
+                        }
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 32)
+                    .disabled(!authService.isInitialized)
+
+                    Button {
+                        // Demo mode for testing
                         Task {
-                            // TODO: Integrate Clerk authentication in Phase 2
-                            // For now, simulate sign in
                             try? await authManager.signIn(
                                 token: "demo_token",
                                 userId: "demo_user"
                             )
                         }
                     } label: {
-                        Text("Sign In with Clerk")
-                            .font(.headline)
-                            .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
+                        Text("Continue as Demo")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.9))
                     }
-                    .padding(.horizontal, 32)
 
                     Text("Secure authentication powered by Clerk")
                         .font(.caption)
@@ -64,7 +108,47 @@ struct SignInView: View {
             }
         }
         .loading(authManager.isLoading)
+        .sheet(isPresented: $showAuthSheet) {
+            NavigationView {
+                AuthView()
+                    .navigationTitle("Sign In")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                showAuthSheet = false
+                            }
+                        }
+                    }
+            }
+            .onDisappear {
+                // After Clerk authentication completes
+                Task {
+                    if clerk.user != nil {
+                        do {
+                            let token = try await authService.getSessionToken()
+                            guard let userId = try? keychainManager.load(forKey: Constants.KeychainKeys.userId) else {
+                                throw AuthError.userFetchFailed
+                            }
+                            try await authManager.signIn(token: token, userId: userId)
+                            AppLogger.authentication.info("User authenticated via Clerk")
+                        } catch {
+                            errorMessage = "Sign in failed: \(error.localizedDescription)"
+                            showError = true
+                            AppLogger.authentication.error("Clerk auth completion failed: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+        .alert("Authentication Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
     }
+
+    private let keychainManager = KeychainManager.shared
 }
 
 // MARK: - Preview

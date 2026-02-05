@@ -12,5 +12,7 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>CLERK_PUBLISHABLE_KEY</key>
+	<string>pk_live_Y2xlcmsuZXF1aXR5bGFicy5hcHAk</string>
 </dict>
 </plist>

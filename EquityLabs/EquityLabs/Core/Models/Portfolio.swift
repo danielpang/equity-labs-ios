@@ -44,6 +44,38 @@ struct Portfolio: Codable {
         self.lastSynced = lastSynced
         self.currency = currency
     }
+
+    // MARK: - Custom Codable
+
+    enum CodingKeys: String, CodingKey {
+        case stocks, lastSynced, currency
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Decode stocks - handle both array and dictionary formats
+        if let stocksArray = try? container.decode([Stock].self, forKey: .stocks) {
+            // API returns array format: { "stocks": [...] }
+            self.stocks = stocksArray
+        } else if let stocksDict = try? container.decode([String: Stock].self, forKey: .stocks) {
+            // API returns dictionary format: { "stocks": { "id1": {...}, "id2": {...} } }
+            self.stocks = Array(stocksDict.values)
+        } else {
+            // Fallback to empty array
+            self.stocks = []
+        }
+
+        self.lastSynced = try container.decodeIfPresent(Date.self, forKey: .lastSynced)
+        self.currency = (try? container.decode(Currency.self, forKey: .currency)) ?? .usd
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(stocks, forKey: .stocks)
+        try container.encodeIfPresent(lastSynced, forKey: .lastSynced)
+        try container.encode(currency, forKey: .currency)
+    }
 }
 
 // MARK: - PortfolioSummary
