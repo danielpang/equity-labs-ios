@@ -40,10 +40,6 @@ class APIClient: ObservableObject {
 
         if let token = authToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            #if DEBUG
-            let tokenPreview = String(token.prefix(30)) + "..." + String(token.suffix(20))
-            print("🔑 Authorization: Bearer \(tokenPreview)")
-            #endif
         } else {
             #if DEBUG
             print("⚠️ WARNING: No auth token set - request will fail!")
@@ -52,7 +48,6 @@ class APIClient: ObservableObject {
 
         #if DEBUG
         print("🌐 API Request: \(endpoint.method.rawValue) \(url.absoluteString)")
-        print("📋 Headers: \(request.allHTTPHeaderFields ?? [:])")
         #endif
 
         return try await performRequest(request)

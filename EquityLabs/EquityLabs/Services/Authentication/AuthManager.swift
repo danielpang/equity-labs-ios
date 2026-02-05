@@ -68,28 +68,21 @@ class AuthManager: ObservableObject {
 
     // MARK: - Fetch User Data
     private func fetchUserData() async {
-        do {
-            // Fetch user profile from backend
-            let response: User = try await apiClient.request(.getUserProfile)
-            self.user = response
-            AppLogger.authentication.debug("User data fetched successfully")
-        } catch {
-            // If API call fails, create basic user from Clerk data
-            if authService.isAuthenticated {
-                let name = authService.getUserName()
-                let userId = try? keychainManager.load(forKey: Constants.KeychainKeys.userId)
-                self.user = User(
-                    id: userId ?? "unknown",
-                    email: authService.getUserEmail(),
-                    firstName: name.firstName,
-                    lastName: name.lastName
-                )
-                AppLogger.authentication.debug("Created user from Clerk data")
-            } else if let userId = try? keychainManager.load(forKey: Constants.KeychainKeys.userId) {
-                // Demo mode user
-                self.user = User(id: userId)
-                AppLogger.authentication.debug("Created demo user")
-            }
+        // Create user from Clerk data (no backend endpoint yet)
+        if authService.isAuthenticated {
+            let name = authService.getUserName()
+            let userId = try? keychainManager.load(forKey: Constants.KeychainKeys.userId)
+            self.user = User(
+                id: userId ?? "unknown",
+                email: authService.getUserEmail(),
+                firstName: name.firstName,
+                lastName: name.lastName
+            )
+            AppLogger.authentication.debug("Created user from Clerk data")
+        } else if let userId = try? keychainManager.load(forKey: Constants.KeychainKeys.userId) {
+            // Demo mode user
+            self.user = User(id: userId)
+            AppLogger.authentication.debug("Created demo user")
         }
     }
 
