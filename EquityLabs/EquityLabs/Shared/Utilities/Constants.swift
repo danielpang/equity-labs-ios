@@ -46,6 +46,14 @@ enum Constants {
         static let hasCompletedOnboarding = "has_completed_onboarding"
     }
 
+    // MARK: - Clerk
+    enum Clerk {
+        // TODO: Replace with your Clerk publishable key from dashboard
+        // Get from: https://dashboard.clerk.com -> API Keys
+        static let publishableKey: String? = ProcessInfo.processInfo.environment["CLERK_PUBLISHABLE_KEY"]
+            ?? Bundle.main.infoDictionary?["CLERK_PUBLISHABLE_KEY"] as? String
+    }
+
     // MARK: - Keychain Keys
     enum KeychainKeys {
         static let authToken = "auth_token"

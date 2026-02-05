@@ -7,28 +7,36 @@ class DashboardViewModel: ObservableObject {
     @Published var stocks: [Stock] = []
     @Published var summary: PortfolioSummary?
     @Published var isLoading = false
+    @Published var isRefreshing = false
     @Published var error: Error?
     @Published var showAddStock = false
     @Published var showSettings = false
+    @Published var selectedCurrency: Currency = .usd
 
     private let portfolioService: PortfolioService
+    private let subscriptionManager: SubscriptionManager
     private var cancellables = Set<AnyCancellable>()
 
-    init(portfolioService: PortfolioService = PortfolioService.shared) {
+    init(portfolioService: PortfolioService = PortfolioService.shared,
+         subscriptionManager: SubscriptionManager = SubscriptionManager.shared) {
         self.portfolioService = portfolioService
+        self.subscriptionManager = subscriptionManager
+
+        observePortfolioService()
     }
 
     // MARK: - Load Portfolio
+
     func loadPortfolio() async {
         isLoading = true
         error = nil
         defer { isLoading = false }
 
         do {
-            // TODO: Implement in Phase 3
-            // For now, return empty portfolio
-            stocks = []
-            updateSummary()
+            let portfolio = try await portfolioService.loadPortfolio()
+            self.stocks = portfolio.stocks
+            self.selectedCurrency = portfolio.currency
+            await updateSummary()
 
             AppLogger.portfolio.debug("Portfolio loaded: \(stocks.count) stocks")
         } catch {
@@ -38,18 +46,39 @@ class DashboardViewModel: ObservableObject {
     }
 
     // MARK: - Refresh Prices
+
     func refreshPrices() async {
-        // TODO: Implement in Phase 3
-        AppLogger.portfolio.debug("Refreshing prices...")
-        updateSummary()
+        guard !stocks.isEmpty else {
+            AppLogger.portfolio.debug("No stocks to refresh")
+            return
+        }
+
+        isRefreshing = true
+        error = nil
+        defer { isRefreshing = false }
+
+        do {
+            let updatedStocks = try await portfolioService.refreshPrices(for: stocks)
+            self.stocks = updatedStocks
+            await updateSummary()
+
+            AppLogger.portfolio.info("Refreshed prices for \(updatedStocks.count) stocks")
+        } catch {
+            self.error = error
+            AppLogger.portfolio.error("Failed to refresh prices: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Delete Stock
+
     func deleteStock(_ stock: Stock) async {
         do {
-            // TODO: Implement in Phase 3
+            // Delete from service
+            try await portfolioService.deleteStock(symbol: stock.symbol)
+
+            // Remove from local array
             stocks.removeAll { $0.id == stock.id }
-            updateSummary()
+            await updateSummary()
 
             AppLogger.portfolio.info("Deleted stock: \(stock.symbol)")
         } catch {
@@ -58,9 +87,117 @@ class DashboardViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Delete Stock at Index (for swipe actions)
+
+    func deleteStock(at indexSet: IndexSet) async {
+        for index in indexSet {
+            let stock = stocks[index]
+            await deleteStock(stock)
+        }
+    }
+
+    // MARK: - Add Stock
+
+    func addStockCompleted() async {
+        // Reload portfolio after adding a stock
+        await loadPortfolio()
+    }
+
+    // MARK: - Check Stock Limit
+
+    var canAddStock: Bool {
+        subscriptionManager.canAddStock(currentCount: stocks.count)
+    }
+
+    var stocksRemaining: Int? {
+        subscriptionManager.stocksRemaining(currentCount: stocks.count)
+    }
+
+    var isAtStockLimit: Bool {
+        guard let remaining = stocksRemaining else { return false }
+        return remaining == 0
+    }
+
     // MARK: - Update Summary
-    private func updateSummary() {
-        let portfolio = Portfolio(stocks: stocks)
-        summary = PortfolioSummary(portfolio: portfolio)
+
+    private func updateSummary() async {
+        do {
+            summary = try await portfolioService.getPortfolioSummary(currency: selectedCurrency)
+        } catch {
+            AppLogger.portfolio.error("Failed to update summary: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Currency Toggle
+
+    func toggleCurrency() async {
+        selectedCurrency = (selectedCurrency == .usd) ? .cad : .usd
+        await updateSummary()
+    }
+
+    // MARK: - Observe Service
+
+    private func observePortfolioService() {
+        // Observe loading state
+        portfolioService.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] loading in
+                if !loading {
+                    // Service finished loading, we might want to refresh UI
+                }
+            }
+            .store(in: &cancellables)
+
+        // Observe errors
+        portfolioService.$error
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .sink { [weak self] error in
+                self?.error = error
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Computed Properties
+
+    var hasStocks: Bool {
+        !stocks.isEmpty
+    }
+
+    var totalValue: Double {
+        summary?.totalValue ?? 0
+    }
+
+    var totalGainLoss: Double {
+        summary?.totalProfitLoss ?? 0
+    }
+
+    var totalGainLossPercent: Double {
+        summary?.totalProfitLossPercentage ?? 0
+    }
+
+    var formattedTotalValue: String {
+        formatCurrency(totalValue)
+    }
+
+    var formattedTotalGainLoss: String {
+        formatCurrency(totalGainLoss)
+    }
+
+    var gainLossColor: String {
+        totalGainLoss >= 0 ? "green" : "red"
+    }
+
+    // MARK: - Formatting Helpers
+
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = selectedCurrency.rawValue
+        return formatter.string(from: NSNumber(value: value)) ?? "$0.00"
+    }
+
+    func formatPercent(_ value: Double) -> String {
+        String(format: "%.2f%%", value)
     }
 }

@@ -11,6 +11,9 @@ enum HTTPMethod: String {
 
 // MARK: - APIEndpoint
 enum APIEndpoint {
+    // Auth endpoints
+    case getUserProfile
+
     // Stock endpoints
     case stockDetail(symbol: String)
     case stockSearch(query: String)
@@ -19,6 +22,9 @@ enum APIEndpoint {
     // Portfolio endpoints
     case portfolio
     case savePortfolio
+    case addStock
+    case updateStock(symbol: String)
+    case deleteStock(symbol: String)
 
     // News endpoints
     case news(symbol: String, count: Int, refresh: Int)
@@ -32,20 +38,23 @@ enum APIEndpoint {
     case validateReceipt
 
     var baseURL: String {
-        // TODO: Replace with your actual backend URL
-        return "https://equitylabs.app"
+        return Constants.API.baseURL
     }
 
     var path: String {
         switch self {
+        case .getUserProfile:
+            return "/api/user/profile"
         case .stockDetail(let symbol):
             return "/api/stocks/\(symbol)"
         case .stockSearch:
             return "/api/stocks/search"
         case .exchangeRate:
             return "/api/exchange-rate"
-        case .portfolio, .savePortfolio:
+        case .portfolio, .savePortfolio, .addStock:
             return "/api/portfolio"
+        case .updateStock(let symbol), .deleteStock(let symbol):
+            return "/api/portfolio/\(symbol)"
         case .news(let symbol, _, _):
             return "/api/news/\(symbol)"
         case .summarizeNews:
@@ -59,12 +68,14 @@ enum APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .stockDetail, .stockSearch, .exchangeRate, .portfolio, .news, .preferences:
+        case .getUserProfile, .stockDetail, .stockSearch, .exchangeRate, .portfolio, .news, .preferences:
             return .get
-        case .savePortfolio, .summarizeNews, .validateReceipt:
+        case .savePortfolio, .addStock, .summarizeNews, .validateReceipt:
             return .post
-        case .updatePreferences:
+        case .updatePreferences, .updateStock:
             return .patch
+        case .deleteStock:
+            return .delete
         }
     }
 

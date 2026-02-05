@@ -30,7 +30,67 @@ struct NewsArticle: Codable, Identifiable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, title, url, source, publishedAt, imageUrl, sentiment, summary
+        case id
+        case title
+        case url = "link"  // API uses "link"
+        case source
+        case publishedAt
+        case imageUrl
+        case sentiment
+        case summary
+    }
+
+    // Custom decoder to handle API format
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Generate ID if not provided by API
+        self.id = (try? container.decode(String.self, forKey: .id)) ?? UUID().uuidString
+
+        self.title = try container.decode(String.self, forKey: .title)
+        self.url = try container.decode(String.self, forKey: .url)
+        self.source = try container.decode(String.self, forKey: .source)
+        self.imageUrl = try? container.decode(String.self, forKey: .imageUrl)
+        self.summary = try? container.decode(String.self, forKey: .summary)
+
+        // Handle publishedAt - try multiple date formats
+        if let dateString = try? container.decode(String.self, forKey: .publishedAt) {
+            // Try RFC2822 format first (e.g., "Wed, 04 Feb 2026 23:59:09 GMT")
+            let rfc2822Formatter = DateFormatter()
+            rfc2822Formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+            rfc2822Formatter.locale = Locale(identifier: "en_US_POSIX")
+
+            if let date = rfc2822Formatter.date(from: dateString) {
+                self.publishedAt = date
+            } else {
+                // Try ISO8601 as fallback
+                let iso8601Formatter = ISO8601DateFormatter()
+                self.publishedAt = iso8601Formatter.date(from: dateString) ?? Date()
+            }
+        } else {
+            self.publishedAt = Date()
+        }
+
+        // Handle sentiment - API returns simple string or full object
+        if let sentimentString = try? container.decode(String.self, forKey: .sentiment) {
+            // API returns simple string like "neutral", "positive", "negative"
+            if let label = SentimentLabel(rawValue: sentimentString) {
+                // Create a simple NewsSentiment from the label
+                let score: Double
+                switch label {
+                case .positive: score = 0.5
+                case .neutral: score = 0.0
+                case .negative: score = -0.5
+                }
+                self.sentiment = NewsSentiment(score: score, label: label, confidence: 0.5)
+            } else {
+                self.sentiment = nil
+            }
+        } else if let sentimentObj = try? container.decode(NewsSentiment.self, forKey: .sentiment) {
+            self.sentiment = sentimentObj
+        } else {
+            self.sentiment = nil
+        }
     }
 }
 
@@ -84,6 +144,20 @@ struct NewsResponse: Codable {
         self.articles = articles
         self.count = count
         self.symbol = symbol
+    }
+
+    // Custom decoder to handle API format
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.articles = try container.decode([NewsArticle].self, forKey: .articles)
+        // Compute count from articles array if not provided by API
+        self.count = (try? container.decode(Int.self, forKey: .count)) ?? articles.count
+        self.symbol = try? container.decode(String.self, forKey: .symbol)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case articles, count, symbol
     }
 }
 

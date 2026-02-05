@@ -94,6 +94,17 @@ struct StockLot: Codable, Identifiable, Hashable {
         self.currency = currency
         self.notes = notes
     }
+
+    // MARK: - Custom Codable
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case shares
+        case pricePerShare = "price"  // API uses "price"
+        case purchaseDate = "date"     // API uses "date"
+        case currency
+        case notes
+    }
 }
 
 // MARK: - HistoricalDataPoint

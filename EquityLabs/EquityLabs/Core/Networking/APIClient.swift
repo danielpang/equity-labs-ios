@@ -40,6 +40,10 @@ class APIClient: ObservableObject {
 
         if let token = authToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            #if DEBUG
+            print("⚠️ WARNING: No auth token set - request will fail!")
+            #endif
         }
 
         #if DEBUG
@@ -122,6 +126,17 @@ class APIClient: ObservableObject {
 
         #if DEBUG
         print("📊 Status Code: \(httpResponse.statusCode)")
+
+        // Log Clerk-specific headers for debugging auth issues
+        if let clerkAuthStatus = httpResponse.value(forHTTPHeaderField: "x-clerk-auth-status") {
+            print("🔐 Clerk Auth Status: \(clerkAuthStatus)")
+        }
+        if let clerkAuthReason = httpResponse.value(forHTTPHeaderField: "x-clerk-auth-reason") {
+            print("🔐 Clerk Auth Reason: \(clerkAuthReason)")
+        }
+        if let clerkAuthMessage = httpResponse.value(forHTTPHeaderField: "x-clerk-auth-message") {
+            print("🔐 Clerk Auth Message: \(clerkAuthMessage)")
+        }
         #endif
 
         switch httpResponse.statusCode {
@@ -132,6 +147,9 @@ class APIClient: ObservableObject {
         case 403:
             throw APIError.forbidden
         case 404:
+            #if DEBUG
+            print("❌ 404 Not Found - Endpoint may not exist or auth failed")
+            #endif
             throw APIError.notFound
         case 429:
             throw APIError.rateLimited
