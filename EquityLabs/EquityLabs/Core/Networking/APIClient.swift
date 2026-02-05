@@ -137,12 +137,6 @@ class APIClient: ObservableObject {
         if let clerkAuthMessage = httpResponse.value(forHTTPHeaderField: "x-clerk-auth-message") {
             print("🔐 Clerk Auth Message: \(clerkAuthMessage)")
         }
-
-        // Log all response headers for debugging
-        print("📋 Response Headers:")
-        httpResponse.allHeaderFields.forEach { key, value in
-            print("  - \(key): \(value)")
-        }
         #endif
 
         switch httpResponse.statusCode {
