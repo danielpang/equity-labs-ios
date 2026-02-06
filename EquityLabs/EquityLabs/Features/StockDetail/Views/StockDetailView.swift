@@ -290,11 +290,36 @@ struct StockDetailView: View {
 
     private var newsListView: some View {
         LazyVStack(spacing: 12) {
+            if !viewModel.canViewSentiment {
+                sentimentUpgradeBanner
+            }
+
             ForEach(viewModel.newsArticles) { article in
-                NewsArticleCard(article: article)
+                NewsArticleCard(article: article, showSentiment: viewModel.canViewSentiment)
             }
         }
         .padding()
+    }
+
+    private var sentimentUpgradeBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "lock.fill")
+                .foregroundColor(.orange)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Upgrade for Sentiment Analysis")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text("Get AI-powered sentiment insights on news articles")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            }
+
+            Spacer()
+        }
+        .padding()
+        .background(Color.orange.opacity(0.1))
+        .cornerRadius(12)
     }
 }
 
@@ -329,6 +354,7 @@ struct StatCardView: View {
 // MARK: - NewsArticleCard
 struct NewsArticleCard: View {
     let article: NewsArticle
+    var showSentiment: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -358,8 +384,8 @@ struct NewsArticleCard: View {
                     .lineLimit(2)
             }
 
-            // Sentiment (if available)
-            if let sentiment = article.sentiment {
+            // Sentiment (if available and allowed)
+            if showSentiment, let sentiment = article.sentiment {
                 HStack(spacing: 4) {
                     Text(sentiment.label.emoji)
                     Text(sentiment.label.displayName)

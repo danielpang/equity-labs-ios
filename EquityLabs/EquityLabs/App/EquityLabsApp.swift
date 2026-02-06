@@ -1,6 +1,29 @@
 import SwiftUI
 import Clerk
 
+// MARK: - AppearanceMode
+enum AppearanceMode: String, CaseIterable {
+    case system
+    case light
+    case dark
+
+    var displayName: String {
+        switch self {
+        case .system: "System"
+        case .light: "Light"
+        case .dark: "Dark"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+}
+
 @main
 struct EquityLabsApp: App {
     @State private var clerk = Clerk.shared
@@ -9,6 +32,7 @@ struct EquityLabsApp: App {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var syncManager = PortfolioSyncManager.shared
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage(Constants.UserDefaultsKeys.appearanceMode) private var appearanceMode: String = AppearanceMode.system.rawValue
 
     let persistenceController = PersistenceController.shared
 
@@ -62,6 +86,7 @@ struct EquityLabsApp: App {
                     AppLogger.authentication.error("❌ App initialization failed: \(error.localizedDescription)")
                 }
             }
+            .preferredColorScheme(AppearanceMode(rawValue: appearanceMode)?.colorScheme)
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active && authService.isAuthenticated {
                     Task {

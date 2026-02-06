@@ -23,6 +23,7 @@ class StockDetailViewModel: ObservableObject {
     private let stockService: StockService
     private let portfolioService: PortfolioService
     private let newsService: NewsService
+    private let subscriptionManager: SubscriptionManager
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Initialization
@@ -30,11 +31,13 @@ class StockDetailViewModel: ObservableObject {
     init(stock: Stock,
          stockService: StockService = StockService.shared,
          portfolioService: PortfolioService = PortfolioService.shared,
-         newsService: NewsService = NewsService.shared) {
+         newsService: NewsService = NewsService.shared,
+         subscriptionManager: SubscriptionManager = SubscriptionManager.shared) {
         self.stock = stock
         self.stockService = stockService
         self.portfolioService = portfolioService
         self.newsService = newsService
+        self.subscriptionManager = subscriptionManager
     }
 
     // MARK: - Load Data
@@ -215,6 +218,10 @@ class StockDetailViewModel: ObservableObject {
 
     var hasNews: Bool {
         !newsArticles.isEmpty
+    }
+
+    var canViewSentiment: Bool {
+        subscriptionManager.subscriptionState.tier.hasNewsSentiment
     }
 
     // MARK: - Formatting

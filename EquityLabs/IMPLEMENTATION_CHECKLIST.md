@@ -153,47 +153,47 @@ Track your progress through each implementation phase.
 
 ---
 
-## Phase 4: Stock Detail & Charts 📊 TODO
+## Phase 4: Stock Detail & Charts ✅ COMPLETED
 
-### Stock Detail
-- [ ] Create `StockDetailViewModel.swift`
-- [ ] Implement tabs (Overview, Lots, News)
-- [ ] Load stock historical data
-- [ ] Display current price and stats
-- [ ] Navigation from dashboard
+### Stock Detail ✅
+- [x] Create `StockDetailViewModel.swift`
+- [x] Implement tabs (Overview, Lots, News)
+- [x] Load stock historical data
+- [x] Display current price and stats
+- [x] Navigation from dashboard
 
-### Charts
-- [ ] Create `StockChartView.swift` with Swift Charts
-- [ ] Time range selector (1D, 1W, 1M, etc.)
-- [ ] Line chart with area fill
-- [ ] Lot price indicators (horizontal lines)
-- [ ] Average cost basis line
-- [ ] Touch interactions
-- [ ] Loading states
+### Charts ✅
+- [x] Create `StockChartView.swift` with Swift Charts
+- [x] Time range selector (1D, 1W, 1M, etc.)
+- [x] Line chart with area fill
+- [x] Lot price indicators (horizontal lines)
+- [x] Average cost basis line
+- [x] Touch interactions
+- [x] Loading states
 
-### Lot Management
-- [ ] Create `StockLotsListView.swift`
-- [ ] Display all lots for stock
-- [ ] Edit lot form
-- [ ] Delete lot confirmation
-- [ ] Add new lot to existing stock
-- [ ] Calculate average cost
+### Lot Management ✅
+- [x] Create `StockLotsListView.swift`
+- [x] Display all lots for stock
+- [x] Edit lot form
+- [x] Delete lot confirmation
+- [x] Add new lot to existing stock
+- [x] Calculate average cost
 
-### News Feed
-- [ ] Create `NewsService.swift`
-- [ ] Fetch news for symbol
-- [ ] Display articles
-- [ ] Sentiment badges (positive/neutral/negative)
-- [ ] Article summarization
-- [ ] Cache with 6-hour TTL
-- [ ] Paywall for free users
+### News Feed ✅
+- [x] Create `NewsService.swift`
+- [x] Fetch news for symbol
+- [x] Display articles
+- [x] Sentiment badges (positive/neutral/negative)
+- [x] Article summarization
+- [x] Cache with 6-hour TTL
+- [x] Paywall for free users
 
-### Testing
-- [ ] Test chart interactions
-- [ ] Test lot CRUD operations
-- [ ] Test news loading
-- [ ] Test sentiment display
-- [ ] Test caching
+### Testing ✅
+- [x] Test chart interactions
+- [x] Test lot CRUD operations
+- [x] Test news loading
+- [x] Test sentiment display
+- [x] Test caching
 
 ---
 
@@ -416,14 +416,14 @@ Track your progress through each implementation phase.
 - ✅ **Phase 1: Foundation** - COMPLETED
 - ✅ **Phase 2: Authentication** - COMPLETED (6/6 sections)
 - ✅ **Phase 3: Portfolio Core** - COMPLETED (6/6 sections)
-- 📊 **Phase 4: Stock Detail & Charts** - TODO (0/4 sections)
+- ✅ **Phase 4: Stock Detail & Charts** - COMPLETED (5/5 sections)
 - 💳 **Phase 5: Subscription & IAP** - TODO (0/5 sections)
 - ⚙️ **Phase 6: Settings** - TODO (0/3 sections)
 - 🔄 **Phase 7: Background Tasks** - TODO (0/3 sections)
 - 🎨 **Phase 8: Polish & Testing** - TODO (0/5 sections)
 - 🚀 **Phase 9: Launch Prep** - TODO (0/4 sections)
 
-**Overall Completion**: ~33% (Phases 1-3 of 9)
+**Overall Completion**: ~44% (Phases 1-4 of 9)
 
 ---
 

@@ -44,6 +44,7 @@ enum Constants {
         static let chartDefaultTimeRange = "chart_default_time_range"
         static let lastSyncDate = "last_sync_date"
         static let hasCompletedOnboarding = "has_completed_onboarding"
+        static let appearanceMode = "appearance_mode"
     }
 
     // MARK: - Clerk

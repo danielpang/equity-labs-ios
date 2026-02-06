@@ -131,12 +131,42 @@ class StockService: ObservableObject {
 
     // MARK: - Historical Data
 
-    /// Fetch historical price data
+    /// Fetch historical price data from the stock detail endpoint
     func fetchHistoricalData(symbol: String, range: TimeRange) async throws -> [HistoricalDataPoint] {
-        // TODO: Implement when backend endpoint is ready
-        // For now, return mock data or empty array
-        AppLogger.portfolio.debug("Historical data fetch not yet implemented")
-        return []
+        do {
+            let response: StockDetailWithHistoryResponse = try await apiClient.request(
+                .stockDetail(symbol: symbol)
+            )
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+            let cutoffDate = Calendar.current.date(
+                byAdding: .day, value: -range.days, to: Date()
+            ) ?? Date()
+
+            let points = (response.history ?? []).compactMap { item -> HistoricalDataPoint? in
+                guard let date = dateFormatter.date(from: item.date) else {
+                    return nil
+                }
+                guard date >= cutoffDate else { return nil }
+                return HistoricalDataPoint(
+                    date: date,
+                    open: item.price,
+                    high: item.price,
+                    low: item.price,
+                    close: item.price,
+                    volume: 0
+                )
+            }
+
+            AppLogger.portfolio.info("Fetched \(points.count) historical data points for \(symbol) (range: \(range.rawValue))")
+            return points
+        } catch {
+            AppLogger.portfolio.error("Failed to fetch historical data for \(symbol): \(error.localizedDescription)")
+            throw error
+        }
     }
 
     // MARK: - Batch Operations
@@ -221,3 +251,13 @@ private struct StockDetailResponse: Codable {
 }
 
 // StockSearchResponse removed - API returns array directly
+
+/// Response from stock detail endpoint that includes history
+private struct StockDetailWithHistoryResponse: Codable {
+    let history: [HistoryItemDTO]?
+}
+
+private struct HistoryItemDTO: Codable {
+    let date: String
+    let price: Double
+}
