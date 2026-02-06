@@ -180,7 +180,7 @@ class PortfolioRepository: ObservableObject {
             let stockValue = stock.lots.reduce(0) { lotTotal, lot in
                 lotTotal + (lot.shares * lot.pricePerShare)
             }
-            // TODO: Convert to target currency if needed
+            // Note: Currency conversion is handled at the service layer (PortfolioService.getPortfolioValue)
             return total + stockValue
         }
     }

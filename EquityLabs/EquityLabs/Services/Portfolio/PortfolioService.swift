@@ -201,8 +201,11 @@ class PortfolioService: ObservableObject {
     // MARK: - Currency Conversion
 
     /// Get portfolio value in specific currency
-    func getPortfolioValue(in currency: String) async throws -> Double {
+    func getPortfolioValue(in currency: Currency) async throws -> Double {
         let stocks = try repository.fetchAllStocks()
+
+        // Ensure we have exchange rates
+        try await exchangeRateService.fetchExchangeRates()
 
         var totalValue: Double = 0
 
@@ -211,9 +214,12 @@ class PortfolioService: ObservableObject {
                 sum + (lot.shares * (stock.currentPrice ?? lot.pricePerShare))
             }
 
-            // Convert if needed (for now, assume all same currency)
-            // TODO: Implement currency conversion when ExchangeRateService supports String
-            totalValue += stockValue
+            // Convert if stock currency differs from target
+            if let stockCurrency = Currency(rawValue: stock.currency), stockCurrency != currency {
+                totalValue += try await exchangeRateService.convert(amount: stockValue, from: stockCurrency, to: currency)
+            } else {
+                totalValue += stockValue
+            }
         }
 
         return totalValue

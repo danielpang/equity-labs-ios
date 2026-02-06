@@ -99,7 +99,7 @@ private struct StatView: View {
     ])
     let summary = PortfolioSummary(portfolio: portfolio)
 
-    return PortfolioSummaryView(summary: summary)
+    PortfolioSummaryView(summary: summary)
         .padding()
         .background(Color.backgroundPrimary)
 }

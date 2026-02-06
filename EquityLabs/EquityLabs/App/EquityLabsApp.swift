@@ -7,6 +7,8 @@ struct EquityLabsApp: App {
     @StateObject private var authService = AuthService.shared
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var syncManager = PortfolioSyncManager.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     let persistenceController = PersistenceController.shared
 
@@ -50,11 +52,21 @@ struct EquityLabsApp: App {
                     if authService.isAuthenticated {
                         await subscriptionManager.loadSubscriptionState()
                         AppLogger.authentication.info("✅ Subscription state loaded")
+
+                        // Initial sync on launch
+                        await syncManager.syncIfNeeded()
                     }
 
                     AppLogger.authentication.info("🎉 App initialization complete - Ready for API calls")
                 } catch {
                     AppLogger.authentication.error("❌ App initialization failed: \(error.localizedDescription)")
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active && authService.isAuthenticated {
+                    Task {
+                        await syncManager.syncIfNeeded()
+                    }
                 }
             }
         }
