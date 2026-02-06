@@ -128,6 +128,9 @@ struct StockChartView: View {
                 }
             }
             .chartYScale(domain: yAxisDomain)
+            .chartPlotStyle { plotArea in
+                plotArea.clipped()
+            }
             .chartGesture { chart in
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
@@ -263,12 +266,16 @@ struct StockChartView: View {
         switch selectedRange {
         case .oneDay:
             return .hour
-        case .oneWeek, .oneMonth:
+        case .oneWeek:
             return .day
-        case .threeMonths, .sixMonths:
+        case .oneMonth:
             return .weekOfYear
-        case .oneYear, .fiveYears, .tenYears:
+        case .threeMonths, .sixMonths:
             return .month
+        case .oneYear:
+            return .month
+        case .fiveYears, .tenYears:
+            return .year
         }
     }
 

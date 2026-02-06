@@ -54,18 +54,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		04A10DDA2F305080002BA8F4 /* Exceptions for "EquityLabs" folder in "EquityLabsTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 04A10D1E2F30505B002BA8F4 /* EquityLabsTests */;
-		};
-		04A10DDB2F305080002BA8F4 /* Exceptions for "EquityLabs" folder in "EquityLabsUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 04A10D282F30505B002BA8F4 /* EquityLabsUITests */;
-		};
 		04A10DF02F30538A002BA8F4 /* Exceptions for "EquityLabs" folder in "EquityLabs" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -80,8 +68,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				04A10DF02F30538A002BA8F4 /* Exceptions for "EquityLabs" folder in "EquityLabs" target */,
-				04A10DDA2F305080002BA8F4 /* Exceptions for "EquityLabs" folder in "EquityLabsTests" target */,
-				04A10DDB2F305080002BA8F4 /* Exceptions for "EquityLabs" folder in "EquityLabsUITests" target */,
 			);
 			path = EquityLabs;
 			sourceTree = "<group>";
