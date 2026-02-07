@@ -5,6 +5,7 @@ struct Portfolio: Codable {
     var stocks: [Stock]
     var lastSynced: Date?
     var currency: Currency
+    var tier: String?
 
     var totalValue: Double {
         stocks.reduce(0) { $0 + $1.currentValue }
@@ -39,16 +40,17 @@ struct Portfolio: Codable {
         return (dayChange / previousValue) * 100
     }
 
-    init(stocks: [Stock] = [], lastSynced: Date? = nil, currency: Currency = .usd) {
+    init(stocks: [Stock] = [], lastSynced: Date? = nil, currency: Currency = .usd, tier: String? = nil) {
         self.stocks = stocks
         self.lastSynced = lastSynced
         self.currency = currency
+        self.tier = tier
     }
 
     // MARK: - Custom Codable
 
     enum CodingKeys: String, CodingKey {
-        case stocks, lastSynced, currency
+        case stocks, lastSynced, currency, tier
     }
 
     init(from decoder: Decoder) throws {
@@ -68,6 +70,7 @@ struct Portfolio: Codable {
 
         self.lastSynced = try container.decodeIfPresent(Date.self, forKey: .lastSynced)
         self.currency = (try? container.decode(Currency.self, forKey: .currency)) ?? .usd
+        self.tier = try container.decodeIfPresent(String.self, forKey: .tier)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -75,6 +78,7 @@ struct Portfolio: Codable {
         try container.encode(stocks, forKey: .stocks)
         try container.encodeIfPresent(lastSynced, forKey: .lastSynced)
         try container.encode(currency, forKey: .currency)
+        try container.encodeIfPresent(tier, forKey: .tier)
     }
 }
 

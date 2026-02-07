@@ -62,7 +62,7 @@ enum APIEndpoint {
         case .preferences, .updatePreferences:
             return "/api/preferences"
         case .validateReceipt:
-            return "/api/subscriptions/validate-receipt"
+            return "/api/subscriptions/validate-ios-receipt"
         }
     }
 

@@ -4,6 +4,7 @@ import SwiftUI
 struct StockDetailView: View {
     @StateObject private var viewModel: StockDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showSubscription = false
 
     init(stock: Stock) {
         _viewModel = StateObject(wrappedValue: StockDetailViewModel(stock: stock))
@@ -63,6 +64,9 @@ struct StockDetailView: View {
             }
         } message: { error in
             Text(error.localizedDescription)
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
         }
     }
 
@@ -302,24 +306,33 @@ struct StockDetailView: View {
     }
 
     private var sentimentUpgradeBanner: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "lock.fill")
-                .foregroundColor(.orange)
+        Button {
+            showSubscription = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "lock.fill")
+                    .foregroundColor(.orange)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Upgrade for Sentiment Analysis")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                Text("Get AI-powered sentiment insights on news articles")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Upgrade for Sentiment Analysis")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("Get AI-powered sentiment insights on news articles")
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundColor(.textSecondary)
             }
-
-            Spacer()
+            .padding()
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(12)
         }
-        .padding()
-        .background(Color.orange.opacity(0.1))
-        .cornerRadius(12)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

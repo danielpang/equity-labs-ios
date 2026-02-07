@@ -75,6 +75,7 @@ struct EquityLabsApp: App {
 
                     if authService.isAuthenticated {
                         await subscriptionManager.loadSubscriptionState()
+                        await subscriptionManager.loadProduct()
                         AppLogger.authentication.info("✅ Subscription state loaded")
 
                         // Initial sync on launch

@@ -5,6 +5,7 @@ struct DashboardView: View {
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @StateObject private var viewModel = DashboardViewModel()
+    @State private var showSubscription = false
 
     var body: some View {
         NavigationStack {
@@ -34,12 +35,15 @@ struct DashboardView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        viewModel.showAddStock = true
+                        if canAddStock {
+                            viewModel.showAddStock = true
+                        } else {
+                            showSubscription = true
+                        }
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                     }
-                    .disabled(!canAddStock)
                 }
 
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -56,6 +60,9 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $viewModel.showSettings) {
                 SettingsView()
+            }
+            .sheet(isPresented: $showSubscription) {
+                SubscriptionView()
             }
             .refreshable {
                 await viewModel.refreshPrices()

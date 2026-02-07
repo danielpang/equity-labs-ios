@@ -13,6 +13,7 @@ class PortfolioService: ObservableObject {
     private let stockService = StockService.shared
     private let exchangeRateService = ExchangeRateService.shared
     private let apiClient = APIClient.shared
+    private let subscriptionManager = SubscriptionManager.shared
 
     @Published var isLoading = false
     @Published var error: Error?
@@ -31,7 +32,12 @@ class PortfolioService: ObservableObject {
             AppLogger.portfolio.info("Loading portfolio from API...")
             let apiPortfolio: Portfolio = try await apiClient.request(.portfolio)
 
-            // 2. Save API data to Core Data (cache for offline)
+            // 2. Apply backend subscription tier if present
+            if let tier = apiPortfolio.tier {
+                subscriptionManager.applyBackendTier(tier)
+            }
+
+            // 3. Save API data to Core Data (cache for offline)
             try repository.saveStocks(apiPortfolio.stocks)
             AppLogger.portfolio.info("✅ Loaded \(apiPortfolio.stocks.count) stocks from API")
 
