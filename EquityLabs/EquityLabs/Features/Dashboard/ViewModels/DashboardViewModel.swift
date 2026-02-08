@@ -12,6 +12,7 @@ class DashboardViewModel: ObservableObject {
     @Published var showAddStock = false
     @Published var showSettings = false
     @Published var selectedCurrency: Currency = .usd
+    @Published var sortBy: SortBy = .alphabetical
 
     private let portfolioService: PortfolioService
     private let subscriptionManager: SubscriptionManager
@@ -21,6 +22,7 @@ class DashboardViewModel: ObservableObject {
          subscriptionManager: SubscriptionManager = SubscriptionManager.shared) {
         self.portfolioService = portfolioService
         self.subscriptionManager = subscriptionManager
+        self.sortBy = SettingsViewModel.loadLocalPreferences().sortBy
 
         observePortfolioService()
     }
@@ -48,24 +50,20 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Refresh Prices
 
     func refreshPrices() async {
-        guard !stocks.isEmpty else {
-            AppLogger.portfolio.debug("No stocks to refresh")
-            return
-        }
-
         isRefreshing = true
         error = nil
         defer { isRefreshing = false }
 
         do {
-            let updatedStocks = try await portfolioService.refreshPrices(for: stocks)
-            self.stocks = updatedStocks
+            let portfolio = try await portfolioService.loadPortfolio()
+            self.stocks = portfolio.stocks
+            self.selectedCurrency = portfolio.currency
             updateSummary()
 
-            AppLogger.portfolio.info("Refreshed prices for \(updatedStocks.count) stocks")
+            AppLogger.portfolio.info("Refreshed portfolio: \(stocks.count) stocks")
         } catch {
             self.error = error
-            AppLogger.portfolio.error("Failed to refresh prices: \(error.localizedDescription)")
+            AppLogger.portfolio.error("Failed to refresh portfolio: \(error.localizedDescription)")
         }
     }
 
@@ -116,6 +114,21 @@ class DashboardViewModel: ObservableObject {
     var isAtStockLimit: Bool {
         guard let remaining = stocksRemaining else { return false }
         return remaining == 0
+    }
+
+    // MARK: - Sorting
+
+    var sortedStocks: [Stock] {
+        switch sortBy {
+        case .alphabetical:
+            return stocks.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .lastUpdated:
+            return stocks.sorted { ($0.lastUpdated ?? .distantPast) > ($1.lastUpdated ?? .distantPast) }
+        }
+    }
+
+    func reloadSortPreference() {
+        sortBy = SettingsViewModel.loadLocalPreferences().sortBy
     }
 
     // MARK: - Update Summary

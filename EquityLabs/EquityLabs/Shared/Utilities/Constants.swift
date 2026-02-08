@@ -39,6 +39,7 @@ enum Constants {
     // MARK: - UserDefaults Keys
     enum UserDefaultsKeys {
         static let currency = "user_currency"
+        static let sortBy = "sort_by"
         static let enableNotifications = "enable_notifications"
         static let enableBackgroundRefresh = "enable_background_refresh"
         static let chartDefaultTimeRange = "chart_default_time_range"

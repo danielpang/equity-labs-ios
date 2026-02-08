@@ -44,5 +44,6 @@ extension AppLogger {
     static let portfolio = AppLogger(category: "Portfolio")
     static let subscription = AppLogger(category: "Subscription")
     static let background = AppLogger(category: "Background")
+    static let settings = AppLogger(category: "Settings")
     static let ui = AppLogger(category: "UI")
 }
