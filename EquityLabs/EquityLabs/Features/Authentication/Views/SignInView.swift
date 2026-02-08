@@ -126,10 +126,11 @@ struct SignInView: View {
                 Task {
                     if clerk.user != nil {
                         do {
+                            // Save Clerk session to keychain first
+                            try await authService.handlePostLogin()
+
                             let token = try await authService.getSessionToken()
-                            guard let userId = try? keychainManager.load(forKey: Constants.KeychainKeys.userId) else {
-                                throw AuthError.userFetchFailed
-                            }
+                            let userId = authService.getClerkUserId() ?? UUID().uuidString
                             try await authManager.signIn(token: token, userId: userId)
                             AppLogger.authentication.info("User authenticated via Clerk")
                         } catch {
@@ -148,7 +149,6 @@ struct SignInView: View {
         }
     }
 
-    private let keychainManager = KeychainManager.shared
 }
 
 // MARK: - Preview

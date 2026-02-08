@@ -103,6 +103,11 @@ class AuthManager: ObservableObject {
 
         isAuthenticated = true
         AppLogger.authentication.info("User signed in successfully")
+
+        // Post-login: load subscription state and sync portfolio
+        await SubscriptionManager.shared.loadSubscriptionState()
+        await SubscriptionManager.shared.loadProduct()
+        await PortfolioSyncManager.shared.fullSync()
     }
 
     // MARK: - Sign Out

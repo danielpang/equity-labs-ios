@@ -10,15 +10,12 @@ class AuthService: ObservableObject {
 
     private let clerk = Clerk.shared
     private let keychainManager = KeychainManager.shared
-    private var cancellables = Set<AnyCancellable>()
 
     @Published var isInitialized = false
     @Published var isAuthenticated = false
     @Published var error: AuthServiceError?
 
-    private init() {
-        observeClerkUser()
-    }
+    private init() {}
 
     // MARK: - Initialization
 
@@ -36,7 +33,7 @@ class AuthService: ObservableObject {
             isAuthenticated = (clerk.user != nil)
 
             // Save session token to keychain if user is authenticated
-            if clerk.user != nil, let userId = getUserId() {
+            if clerk.user != nil, let userId = getClerkUserId() {
                 try await saveSessionToken(userId: userId)
             }
 
@@ -49,7 +46,7 @@ class AuthService: ObservableObject {
 
     // MARK: - User Info Helpers
 
-    private func getUserId() -> String? {
+    func getClerkUserId() -> String? {
         guard let user = clerk.user else { return nil }
         return Mirror(reflecting: user).children.first(where: { $0.label == "id" })?.value as? String
     }
@@ -145,30 +142,17 @@ class AuthService: ObservableObject {
         }
     }
 
-    // MARK: - Observer
+    // MARK: - Post-Login Setup
 
-    /// Observe Clerk user changes
-    private func observeClerkUser() {
-        // Monitor Clerk's user property for changes
-        // Note: This is a simplified approach. Clerk SDK may provide
-        // better observation mechanisms in future versions.
-        Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                let wasAuthenticated = self.isAuthenticated
-                self.isAuthenticated = (self.clerk.user != nil)
+    /// Call after Clerk authentication completes to save session and update state.
+    func handlePostLogin() async throws {
+        guard clerk.user != nil else { return }
 
-                // Update keychain when user changes
-                if !wasAuthenticated && self.isAuthenticated {
-                    if let userId = self.getUserId() {
-                        Task {
-                            try? await self.saveSessionToken(userId: userId)
-                        }
-                    }
-                }
-            }
-            .store(in: &cancellables)
+        isAuthenticated = true
+
+        if let userId = getClerkUserId() {
+            try await saveSessionToken(userId: userId)
+        }
     }
 }
 

@@ -44,8 +44,8 @@ struct EquityLabsApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if authManager.isAuthReady && authService.isAuthenticated {
-                    // Show dashboard only after auth is fully initialized
+                if authManager.isAuthReady && authManager.isAuthenticated {
+                    // Show dashboard only after auth is fully initialized and API token is set
                     DashboardView()
                         .environment(\.managedObjectContext, persistenceController.viewContext)
                         .environment(\.clerk, clerk)
@@ -73,7 +73,7 @@ struct EquityLabsApp: App {
                     await authManager.checkAuthState()
                     AppLogger.authentication.info("✅ Auth state checked")
 
-                    if authService.isAuthenticated {
+                    if authManager.isAuthenticated {
                         await subscriptionManager.loadSubscriptionState()
                         await subscriptionManager.loadProduct()
                         AppLogger.authentication.info("✅ Subscription state loaded")
@@ -89,7 +89,7 @@ struct EquityLabsApp: App {
             }
             .preferredColorScheme(AppearanceMode(rawValue: appearanceMode)?.colorScheme)
             .onChange(of: scenePhase) { _, newPhase in
-                if newPhase == .active && authService.isAuthenticated {
+                if newPhase == .active && authManager.isAuthenticated {
                     Task {
                         await syncManager.syncIfNeeded()
                     }

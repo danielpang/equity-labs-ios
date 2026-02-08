@@ -68,7 +68,9 @@ struct DashboardView: View {
                 await viewModel.refreshPrices()
             }
             .task {
-                await viewModel.loadPortfolio()
+                if viewModel.stocks.isEmpty {
+                    await viewModel.loadPortfolio()
+                }
             }
         }
     }
