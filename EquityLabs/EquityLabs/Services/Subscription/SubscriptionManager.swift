@@ -8,18 +8,32 @@ class SubscriptionManager: ObservableObject {
     static let shared = SubscriptionManager()
 
     @Published var subscriptionState: SubscriptionState = SubscriptionState()
+    @Published var product: Product?
     @Published var isLoading = false
     @Published var error: Error?
 
+    private let apiClient = APIClient.shared
     private var updateListenerTask: Task<Void, Error>?
 
     private init() {
         // Start listening for transaction updates
         updateListenerTask = listenForTransactions()
+        Task { await loadProduct() }
     }
 
     deinit {
         updateListenerTask?.cancel()
+    }
+
+    // MARK: - Load Product
+    func loadProduct() async {
+        do {
+            let products = try await Product.products(for: [Constants.Subscription.monthlyProductId])
+            product = products.first
+            AppLogger.subscription.info("Loaded product: \(product?.displayName ?? "none")")
+        } catch {
+            AppLogger.subscription.error("Failed to load products: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Load Subscription State
@@ -51,6 +65,21 @@ class SubscriptionManager: ObservableObject {
         // No active subscription found
         subscriptionState = SubscriptionState(tier: .free)
         AppLogger.subscription.debug("No active subscription")
+    }
+
+    // MARK: - Apply Backend Tier
+    func applyBackendTier(_ tier: String) {
+        if tier == "paid" && subscriptionState.tier == .free {
+            subscriptionState = SubscriptionState(
+                tier: .paid,
+                isActive: true,
+                lastValidated: Date()
+            )
+            AppLogger.subscription.info("Applied backend tier: paid")
+        } else if tier == "free" && subscriptionState.tier == .paid {
+            subscriptionState = SubscriptionState(tier: .free)
+            AppLogger.subscription.info("Applied backend tier: free")
+        }
     }
 
     // MARK: - Check Stock Limit
@@ -87,10 +116,62 @@ class SubscriptionManager: ObservableObject {
         }
     }
 
-    // MARK: - Purchase (Placeholder for Phase 5)
+    // MARK: - Purchase
     func purchase() async throws {
-        // TODO: Implement in Phase 5
-        throw SubscriptionError.notImplemented
+        guard let product else {
+            throw SubscriptionError.productNotLoaded
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        let result = try await product.purchase()
+
+        switch result {
+        case .success(let verification):
+            guard case .verified(let transaction) = verification else {
+                throw SubscriptionError.purchaseFailed
+            }
+
+            await transaction.finish()
+
+            // Send App Store receipt to backend for validation
+            await sendReceiptToBackend(productId: transaction.productID)
+
+            // Reload subscription state
+            await loadSubscriptionState()
+
+            AppLogger.subscription.info("Purchase successful")
+
+        case .userCancelled:
+            AppLogger.subscription.debug("Purchase cancelled by user")
+
+        case .pending:
+            AppLogger.subscription.info("Purchase pending approval")
+
+        @unknown default:
+            throw SubscriptionError.purchaseFailed
+        }
+    }
+
+    // MARK: - Send Receipt to Backend
+    private func sendReceiptToBackend(productId: String) async {
+        guard let receiptURL = Bundle.main.appStoreReceiptURL,
+              let receiptData = try? Data(contentsOf: receiptURL) else {
+            AppLogger.subscription.error("No App Store receipt found")
+            return
+        }
+
+        do {
+            let request = ReceiptValidationRequest(
+                receiptData: receiptData.base64EncodedString(),
+                productId: productId
+            )
+            let _: ReceiptValidationResponse = try await apiClient.upload(.validateReceipt, body: request)
+            AppLogger.subscription.info("Receipt validated with backend")
+        } catch {
+            AppLogger.subscription.error("Receipt validation failed: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Restore Purchases
@@ -102,15 +183,15 @@ class SubscriptionManager: ObservableObject {
 
 // MARK: - SubscriptionError
 enum SubscriptionError: LocalizedError {
-    case notImplemented
+    case productNotLoaded
     case purchaseFailed
     case restoreFailed
     case validationFailed
 
     var errorDescription: String? {
         switch self {
-        case .notImplemented:
-            return "Feature not yet implemented"
+        case .productNotLoaded:
+            return "Subscription product not available. Please try again later."
         case .purchaseFailed:
             return "Purchase failed"
         case .restoreFailed:

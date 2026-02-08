@@ -93,10 +93,10 @@ struct SubscriptionProduct: Identifiable {
     let tier: SubscriptionTier
 
     static let monthly = SubscriptionProduct(
-        id: "com.equitylabs.subscription.monthly",
+        id: "com.equitylabs.premium.monthly",
         displayName: "Premium Monthly",
         description: "Unlock all premium features",
-        price: "$5.99/month",
+        price: "$4.99/month",
         tier: .paid
     )
 }

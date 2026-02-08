@@ -6,6 +6,7 @@ struct SettingsView: View {
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @AppStorage(Constants.UserDefaultsKeys.appearanceMode) private var appearanceMode: String = AppearanceMode.system.rawValue
+    @State private var showSubscription = false
 
     var body: some View {
         NavigationStack {
@@ -30,7 +31,14 @@ struct SettingsView: View {
 
                     if subscriptionManager.subscriptionState.tier == .free {
                         Button("Upgrade to Premium") {
-                            // TODO: Show subscription view in Phase 5
+                            showSubscription = true
+                        }
+                        .foregroundColor(.blue)
+                    } else {
+                        Button("Manage Subscription") {
+                            if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                                UIApplication.shared.open(url)
+                            }
                         }
                         .foregroundColor(.blue)
                     }
@@ -69,6 +77,9 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showSubscription) {
+                SubscriptionView()
             }
         }
     }
