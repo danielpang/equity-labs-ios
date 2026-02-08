@@ -72,14 +72,14 @@ final class DashboardViewModelTests: XCTestCase {
     // MARK: - Currency Toggle
 
     @MainActor
-    func testToggleCurrency() async {
+    func testToggleCurrency() {
         let vm = DashboardViewModel()
         XCTAssertEqual(vm.selectedCurrency, .usd)
 
-        await vm.toggleCurrency()
+        vm.toggleCurrency()
         XCTAssertEqual(vm.selectedCurrency, .cad)
 
-        await vm.toggleCurrency()
+        vm.toggleCurrency()
         XCTAssertEqual(vm.selectedCurrency, .usd)
     }
 

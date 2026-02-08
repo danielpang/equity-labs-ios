@@ -36,7 +36,7 @@ class DashboardViewModel: ObservableObject {
             let portfolio = try await portfolioService.loadPortfolio()
             self.stocks = portfolio.stocks
             self.selectedCurrency = portfolio.currency
-            await updateSummary()
+            updateSummary()
 
             AppLogger.portfolio.debug("Portfolio loaded: \(stocks.count) stocks")
         } catch {
@@ -60,7 +60,7 @@ class DashboardViewModel: ObservableObject {
         do {
             let updatedStocks = try await portfolioService.refreshPrices(for: stocks)
             self.stocks = updatedStocks
-            await updateSummary()
+            updateSummary()
 
             AppLogger.portfolio.info("Refreshed prices for \(updatedStocks.count) stocks")
         } catch {
@@ -78,7 +78,7 @@ class DashboardViewModel: ObservableObject {
 
             // Remove from local array
             stocks.removeAll { $0.id == stock.id }
-            await updateSummary()
+            updateSummary()
 
             AppLogger.portfolio.info("Deleted stock: \(stock.symbol)")
         } catch {
@@ -120,19 +120,16 @@ class DashboardViewModel: ObservableObject {
 
     // MARK: - Update Summary
 
-    private func updateSummary() async {
-        do {
-            summary = try await portfolioService.getPortfolioSummary(currency: selectedCurrency)
-        } catch {
-            AppLogger.portfolio.error("Failed to update summary: \(error.localizedDescription)")
-        }
+    private func updateSummary() {
+        let portfolio = Portfolio(stocks: stocks, currency: selectedCurrency)
+        summary = PortfolioSummary(portfolio: portfolio)
     }
 
     // MARK: - Currency Toggle
 
-    func toggleCurrency() async {
+    func toggleCurrency() {
         selectedCurrency = (selectedCurrency == .usd) ? .cad : .usd
-        await updateSummary()
+        updateSummary()
     }
 
     // MARK: - Observe Service
