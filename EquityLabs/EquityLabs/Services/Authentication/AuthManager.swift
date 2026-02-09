@@ -33,7 +33,14 @@ class AuthManager: ObservableObject {
                 let token = try await authService.getSessionToken()
                 apiClient.setAuthToken(token)
 
-                AppLogger.authentication.info("🎫 JWT Token set in APIClient")
+                // Set up token provider so APIClient always gets a fresh JWT
+                // Clerk JWTs are short-lived (~60s), so this ensures every request uses a valid token
+                let authSvc = authService
+                apiClient.setTokenProvider {
+                    try await authSvc.getSessionToken()
+                }
+
+                AppLogger.authentication.info("🎫 JWT Token & provider set in APIClient")
 
                 // Fetch user data from backend
                 await fetchUserData()
@@ -97,6 +104,12 @@ class AuthManager: ObservableObject {
 
         // Set token in API client
         apiClient.setAuthToken(token)
+
+        // Set up token provider for fresh JWTs on every request
+        let authSvc = authService
+        apiClient.setTokenProvider {
+            try await authSvc.getSessionToken()
+        }
 
         // Fetch user data from backend
         await fetchUserData()

@@ -268,11 +268,13 @@ final class NewsServiceTests: XCTestCase {
                     "title": "Test",
                     "link": "https://example.com",
                     "source": "Reuters",
-                    "publishedAt": "2026-02-05T12:00:00Z"
+                    "publishedAt": "2026-02-05T12:00:00Z",
+                    "sentiment": "positive"
                 }
             ],
-            "count": 1,
-            "symbol": "AAPL"
+            "cachedAt": "2026-02-05T12:00:00Z",
+            "expiresAt": "2026-02-05T13:00:00Z",
+            "hasSentiment": true
         }
         """.data(using: .utf8)!
 
@@ -281,10 +283,11 @@ final class NewsServiceTests: XCTestCase {
 
         XCTAssertEqual(response.articles.count, 1)
         XCTAssertEqual(response.count, 1)
-        XCTAssertEqual(response.symbol, "AAPL")
+        XCTAssertTrue(response.hasSentiment)
+        XCTAssertEqual(response.articles.first?.sentiment?.label, .positive)
     }
 
-    func testNewsResponseWithoutCount() throws {
+    func testNewsResponseFreeTier() throws {
         let json = """
         {
             "articles": [
@@ -292,23 +295,19 @@ final class NewsServiceTests: XCTestCase {
                     "title": "Test",
                     "link": "https://example.com",
                     "source": "Reuters",
-                    "publishedAt": "2026-02-05T12:00:00Z"
-                },
-                {
-                    "title": "Test 2",
-                    "link": "https://example.com/2",
-                    "source": "Bloomberg",
-                    "publishedAt": "2026-02-05T13:00:00Z"
+                    "publishedAt": "2026-02-05T12:00:00Z",
+                    "sentiment": "neutral"
                 }
-            ]
+            ],
+            "hasSentiment": false
         }
         """.data(using: .utf8)!
 
         let decoder = JSONDecoder()
         let response = try decoder.decode(NewsResponse.self, from: json)
 
-        XCTAssertEqual(response.articles.count, 2)
-        // count should default to articles.count
-        XCTAssertEqual(response.count, 2)
+        XCTAssertEqual(response.articles.count, 1)
+        XCTAssertFalse(response.hasSentiment)
+        XCTAssertEqual(response.articles.first?.sentiment?.label, .neutral)
     }
 }

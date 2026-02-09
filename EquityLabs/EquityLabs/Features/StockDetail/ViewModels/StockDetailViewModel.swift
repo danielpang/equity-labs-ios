@@ -12,6 +12,7 @@ class StockDetailViewModel: ObservableObject {
     @Published var selectedTimeRange: TimeRange = .oneMonth
     @Published var selectedTab: DetailTab = .overview
     @Published var newsArticles: [NewsArticle] = []
+    @Published var hasSentimentFromAPI = false
 
     @Published var isLoading = false
     @Published var isLoadingHistory = false
@@ -90,10 +91,11 @@ class StockDetailViewModel: ObservableObject {
         defer { isLoadingNews = false }
 
         do {
-            let articles = try await newsService.fetchNews(for: stock.symbol, count: 10)
-            self.newsArticles = articles
+            let response = try await newsService.fetchNews(for: stock.symbol, count: 10)
+            self.newsArticles = response.articles
+            self.hasSentimentFromAPI = response.hasSentiment
 
-            AppLogger.portfolio.debug("Loaded \(articles.count) news articles for \(stock.symbol)")
+            AppLogger.portfolio.debug("Loaded \(response.articles.count) news articles for \(stock.symbol), hasSentiment: \(response.hasSentiment)")
         } catch {
             AppLogger.portfolio.error("Failed to load news: \(error.localizedDescription)")
             // Don't set error for news failure
@@ -221,7 +223,7 @@ class StockDetailViewModel: ObservableObject {
     }
 
     var canViewSentiment: Bool {
-        subscriptionManager.subscriptionState.tier.hasNewsSentiment
+        hasSentimentFromAPI
     }
 
     // MARK: - Formatting

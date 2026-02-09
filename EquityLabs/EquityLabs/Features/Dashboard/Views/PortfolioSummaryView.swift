@@ -8,7 +8,7 @@ struct PortfolioSummaryView: View {
         VStack(spacing: 16) {
             // Total value
             VStack(spacing: 4) {
-                Text("Total Value")
+                Text("Total Value (\(summary?.currency.rawValue ?? "USD"))")
                     .font(.subheadline)
                     .foregroundColor(.textSecondary)
 

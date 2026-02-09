@@ -10,6 +10,7 @@ class APIClient: ObservableObject {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
     private var authToken: String?
+    private var tokenProvider: (() async throws -> String?)?
 
     private init() {
         let configuration = URLSessionConfiguration.default
@@ -31,6 +32,20 @@ class APIClient: ObservableObject {
         self.authToken = token
     }
 
+    /// Set a token provider that fetches a fresh JWT before each request.
+    /// This ensures Clerk short-lived tokens are always valid.
+    func setTokenProvider(_ provider: @escaping () async throws -> String?) {
+        self.tokenProvider = provider
+    }
+
+    /// Get a fresh auth token, preferring the token provider over the static token.
+    private func getActiveToken() async -> String? {
+        if let provider = tokenProvider {
+            return try? await provider()
+        }
+        return authToken
+    }
+
     // MARK: - Request Methods
     func request<T: Decodable>(_ endpoint: APIEndpoint) async throws -> T {
         let url = try endpoint.buildURL()
@@ -38,7 +53,7 @@ class APIClient: ObservableObject {
         request.httpMethod = endpoint.method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = authToken {
+        if let token = await getActiveToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         } else {
             #if DEBUG
@@ -59,7 +74,7 @@ class APIClient: ObservableObject {
         request.httpMethod = endpoint.method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = authToken {
+        if let token = await getActiveToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -82,7 +97,7 @@ class APIClient: ObservableObject {
         request.httpMethod = endpoint.method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = authToken {
+        if let token = await getActiveToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

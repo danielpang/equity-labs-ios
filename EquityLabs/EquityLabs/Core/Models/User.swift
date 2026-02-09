@@ -79,6 +79,17 @@ struct UserPreferences: Codable {
     }
 }
 
+// MARK: - PreferencesResponse
+/// Wrapper for GET /api/preferences response: {"preferences": {"currency": "...", "sortBy": "..."}}
+struct PreferencesResponse: Codable {
+    let preferences: RemotePreferences
+
+    struct RemotePreferences: Codable {
+        let currency: Currency
+        let sortBy: SortBy
+    }
+}
+
 // MARK: - PreferencesUpdate
 /// Currency and sortBy are synced to the backend API.
 /// Other preferences (notifications, background refresh, chart range) are local-only.

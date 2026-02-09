@@ -20,9 +20,9 @@ class SettingsViewModel: ObservableObject {
     /// Load server-synced preferences (currency, sortBy) from API, merge with local settings.
     func loadPreferences() async {
         do {
-            let remote: UserPreferences = try await apiClient.request(.preferences)
-            preferences.currency = remote.currency
-            preferences.sortBy = remote.sortBy
+            let response: PreferencesResponse = try await apiClient.request(.preferences)
+            preferences.currency = response.preferences.currency
+            preferences.sortBy = response.preferences.sortBy
             saveLocally(preferences)
             AppLogger.settings.info("Loaded preferences from API")
         } catch {
