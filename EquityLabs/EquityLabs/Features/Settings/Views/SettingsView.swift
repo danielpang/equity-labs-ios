@@ -5,7 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
-    @StateObject private var viewModel = SettingsViewModel()
+    @ObservedObject var viewModel: SettingsViewModel
     @AppStorage(Constants.UserDefaultsKeys.appearanceMode) private var appearanceMode: String = AppearanceMode.system.rawValue
     @State private var showSubscription = false
     @State private var showSignOutConfirmation = false
@@ -146,7 +146,7 @@ struct SettingsView: View {
 
 // MARK: - Preview
 #Preview {
-    SettingsView()
+    SettingsView(viewModel: SettingsViewModel())
         .environmentObject(AuthManager.shared)
         .environmentObject(SubscriptionManager.shared)
 }

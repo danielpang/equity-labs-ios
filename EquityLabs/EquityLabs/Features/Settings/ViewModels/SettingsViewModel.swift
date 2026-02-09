@@ -8,6 +8,9 @@ class SettingsViewModel: ObservableObject {
     @Published var isSyncing = false
     @Published var error: Error?
 
+    /// Tracks the last backend sync so callers can await completion.
+    private(set) var pendingSyncTask: Task<Void, Never>?
+
     private let apiClient = APIClient.shared
     private let authManager = AuthManager.shared
 
@@ -70,7 +73,7 @@ class SettingsViewModel: ObservableObject {
     // MARK: - Sync to Backend
 
     private func syncToBackend(_ update: PreferencesUpdate) {
-        Task {
+        pendingSyncTask = Task {
             isSyncing = true
             defer { isSyncing = false }
 
@@ -82,6 +85,12 @@ class SettingsViewModel: ObservableObject {
                 queueOfflineUpdate(update)
             }
         }
+    }
+
+    /// Wait for any in-flight preference sync to complete before proceeding.
+    func awaitPendingSync() async {
+        await pendingSyncTask?.value
+        pendingSyncTask = nil
     }
 
     /// Replay any queued preference updates from offline sessions.

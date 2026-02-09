@@ -5,6 +5,7 @@ struct DashboardView: View {
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var settingsViewModel = SettingsViewModel()
     @State private var showSubscription = false
 
     var body: some View {
@@ -62,10 +63,11 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.showSettings, onDismiss: {
                 viewModel.reloadSortPreference()
                 Task {
+                    await settingsViewModel.awaitPendingSync()
                     await viewModel.refreshPrices()
                 }
             }) {
-                SettingsView()
+                SettingsView(viewModel: settingsViewModel)
             }
             .sheet(isPresented: $showSubscription) {
                 SubscriptionView()

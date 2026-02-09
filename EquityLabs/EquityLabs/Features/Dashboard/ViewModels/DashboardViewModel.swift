@@ -15,12 +15,15 @@ class DashboardViewModel: ObservableObject {
     @Published var sortBy: SortBy = .alphabetical
 
     private let portfolioService: PortfolioService
+    private let stockService: StockService
     private let subscriptionManager: SubscriptionManager
     private var cancellables = Set<AnyCancellable>()
 
     init(portfolioService: PortfolioService = PortfolioService.shared,
+         stockService: StockService = StockService.shared,
          subscriptionManager: SubscriptionManager = SubscriptionManager.shared) {
         self.portfolioService = portfolioService
+        self.stockService = stockService
         self.subscriptionManager = subscriptionManager
         self.sortBy = SettingsViewModel.loadLocalPreferences().sortBy
 
@@ -31,39 +34,73 @@ class DashboardViewModel: ObservableObject {
 
     func loadPortfolio() async {
         isLoading = true
-        error = nil
         defer { isLoading = false }
 
-        do {
-            let portfolio = try await portfolioService.loadPortfolio()
-            self.stocks = portfolio.stocks
-            self.selectedCurrency = portfolio.currency
-            updateSummary()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task { @MainActor [weak self] in
+                defer { continuation.resume() }
+                guard let self else { return }
 
-            AppLogger.portfolio.debug("Portfolio loaded: \(stocks.count) stocks")
-        } catch {
-            self.error = error
-            AppLogger.portfolio.error("Failed to load portfolio: \(error.localizedDescription)")
+                do {
+                    let portfolio = try await self.portfolioService.loadPortfolio()
+                    self.stocks = portfolio.stocks
+                    self.selectedCurrency = portfolio.currency
+                    self.updateSummary()
+                    self.error = nil
+
+                    AppLogger.portfolio.debug("Portfolio loaded: \(self.stocks.count) stocks")
+                } catch {
+                    self.error = error
+                    AppLogger.portfolio.error("Failed to load portfolio: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
     // MARK: - Refresh Prices
 
+    /// Refresh portfolio and fetch fresh market data for each stock.
+    /// Wraps network work in an unstructured Task to prevent SwiftUI .refreshable
+    /// cancellation from killing in-flight requests when @Published properties update.
     func refreshPrices() async {
         isRefreshing = true
-        error = nil
         defer { isRefreshing = false }
 
-        do {
-            let portfolio = try await portfolioService.loadPortfolio()
-            self.stocks = portfolio.stocks
-            self.selectedCurrency = portfolio.currency
-            updateSummary()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task { @MainActor [weak self] in
+                defer { continuation.resume() }
+                guard let self else { return }
 
-            AppLogger.portfolio.info("Refreshed portfolio: \(stocks.count) stocks")
-        } catch {
-            self.error = error
-            AppLogger.portfolio.error("Failed to refresh portfolio: \(error.localizedDescription)")
+                do {
+                    // 1. Load portfolio to get current stock list & lots
+                    let portfolio = try await self.portfolioService.loadPortfolio()
+                    var updatedStocks = portfolio.stocks
+                    self.selectedCurrency = portfolio.currency
+
+                    // 2. Fetch fresh market data for each stock
+                    for i in updatedStocks.indices {
+                        do {
+                            let price = try await self.stockService.refreshPrice(for: updatedStocks[i].symbol)
+                            if price.currentPrice > 0 {
+                                updatedStocks[i].currentPrice = price.currentPrice
+                                updatedStocks[i].previousClose = price.previousClose
+                                updatedStocks[i].lastUpdated = price.lastUpdated
+                            }
+                        } catch {
+                            AppLogger.portfolio.warning("Failed to refresh price for \(updatedStocks[i].symbol): \(error.localizedDescription)")
+                        }
+                    }
+
+                    self.stocks = updatedStocks
+                    self.updateSummary()
+                    self.error = nil
+
+                    AppLogger.portfolio.info("Refreshed portfolio with market data: \(updatedStocks.count) stocks")
+                } catch {
+                    self.error = error
+                    AppLogger.portfolio.error("Failed to refresh portfolio: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
