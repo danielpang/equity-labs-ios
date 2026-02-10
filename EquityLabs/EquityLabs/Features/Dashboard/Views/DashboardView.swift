@@ -61,10 +61,10 @@ struct DashboardView: View {
                 AddStockView()
             }
             .sheet(isPresented: $viewModel.showSettings, onDismiss: {
-                viewModel.reloadSortPreference()
                 Task {
+                    await viewModel.reloadPreferences()
                     await settingsViewModel.awaitPendingSync()
-                    await viewModel.refreshPrices()
+                    await viewModel.loadPortfolio()
                 }
             }) {
                 SettingsView(viewModel: settingsViewModel)
