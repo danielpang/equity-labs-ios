@@ -12,15 +12,26 @@ class DashboardViewModel: ObservableObject {
     @Published var showAddStock = false
     @Published var showSettings = false
     @Published var selectedCurrency: Currency = .usd
+    @Published var sortBy: SortBy = .alphabetical
 
     private let portfolioService: PortfolioService
+    private let stockService: StockService
+    private let exchangeRateService: ExchangeRateService
     private let subscriptionManager: SubscriptionManager
     private var cancellables = Set<AnyCancellable>()
 
     init(portfolioService: PortfolioService = PortfolioService.shared,
+         stockService: StockService = StockService.shared,
+         exchangeRateService: ExchangeRateService = ExchangeRateService.shared,
          subscriptionManager: SubscriptionManager = SubscriptionManager.shared) {
         self.portfolioService = portfolioService
+        self.stockService = stockService
+        self.exchangeRateService = exchangeRateService
         self.subscriptionManager = subscriptionManager
+
+        let prefs = SettingsViewModel.loadLocalPreferences()
+        self.sortBy = prefs.sortBy
+        self.selectedCurrency = prefs.currency
 
         observePortfolioService()
     }
@@ -29,43 +40,71 @@ class DashboardViewModel: ObservableObject {
 
     func loadPortfolio() async {
         isLoading = true
-        error = nil
         defer { isLoading = false }
 
-        do {
-            let portfolio = try await portfolioService.loadPortfolio()
-            self.stocks = portfolio.stocks
-            self.selectedCurrency = portfolio.currency
-            updateSummary()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task { @MainActor [weak self] in
+                defer { continuation.resume() }
+                guard let self else { return }
 
-            AppLogger.portfolio.debug("Portfolio loaded: \(stocks.count) stocks")
-        } catch {
-            self.error = error
-            AppLogger.portfolio.error("Failed to load portfolio: \(error.localizedDescription)")
+                do {
+                    let portfolio = try await self.portfolioService.loadPortfolio()
+                    self.stocks = portfolio.stocks
+                    await self.updateSummary()
+                    self.error = nil
+
+                    AppLogger.portfolio.debug("Portfolio loaded: \(self.stocks.count) stocks")
+                } catch {
+                    self.error = error
+                    AppLogger.portfolio.error("Failed to load portfolio: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
     // MARK: - Refresh Prices
 
+    /// Refresh portfolio and fetch fresh market data for each stock.
+    /// Wraps network work in an unstructured Task to prevent SwiftUI .refreshable
+    /// cancellation from killing in-flight requests when @Published properties update.
     func refreshPrices() async {
-        guard !stocks.isEmpty else {
-            AppLogger.portfolio.debug("No stocks to refresh")
-            return
-        }
-
         isRefreshing = true
-        error = nil
         defer { isRefreshing = false }
 
-        do {
-            let updatedStocks = try await portfolioService.refreshPrices(for: stocks)
-            self.stocks = updatedStocks
-            updateSummary()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task { @MainActor [weak self] in
+                defer { continuation.resume() }
+                guard let self else { return }
 
-            AppLogger.portfolio.info("Refreshed prices for \(updatedStocks.count) stocks")
-        } catch {
-            self.error = error
-            AppLogger.portfolio.error("Failed to refresh prices: \(error.localizedDescription)")
+                do {
+                    // 1. Load portfolio to get current stock list & lots
+                    let portfolio = try await self.portfolioService.loadPortfolio()
+                    var updatedStocks = portfolio.stocks
+
+                    // 2. Fetch fresh market data for each stock
+                    for i in updatedStocks.indices {
+                        do {
+                            let price = try await self.stockService.refreshPrice(for: updatedStocks[i].symbol)
+                            if price.currentPrice > 0 {
+                                updatedStocks[i].currentPrice = price.currentPrice
+                                updatedStocks[i].previousClose = price.previousClose
+                                updatedStocks[i].lastUpdated = price.lastUpdated
+                            }
+                        } catch {
+                            AppLogger.portfolio.warning("Failed to refresh price for \(updatedStocks[i].symbol): \(error.localizedDescription)")
+                        }
+                    }
+
+                    self.stocks = updatedStocks
+                    await self.updateSummary()
+                    self.error = nil
+
+                    AppLogger.portfolio.info("Refreshed portfolio with market data: \(updatedStocks.count) stocks")
+                } catch {
+                    self.error = error
+                    AppLogger.portfolio.error("Failed to refresh portfolio: \(error.localizedDescription)")
+                }
+            }
         }
     }
 
@@ -78,7 +117,7 @@ class DashboardViewModel: ObservableObject {
 
             // Remove from local array
             stocks.removeAll { $0.id == stock.id }
-            updateSummary()
+            await updateSummary()
 
             AppLogger.portfolio.info("Deleted stock: \(stock.symbol)")
         } catch {
@@ -118,18 +157,70 @@ class DashboardViewModel: ObservableObject {
         return remaining == 0
     }
 
+    // MARK: - Sorting
+
+    var sortedStocks: [Stock] {
+        switch sortBy {
+        case .alphabetical:
+            return stocks.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .lastUpdated:
+            return stocks.sorted { ($0.lastUpdated ?? .distantPast) > ($1.lastUpdated ?? .distantPast) }
+        }
+    }
+
+    func reloadPreferences() async {
+        let prefs = SettingsViewModel.loadLocalPreferences()
+        sortBy = prefs.sortBy
+        selectedCurrency = prefs.currency
+        await updateSummary()
+    }
+
     // MARK: - Update Summary
 
-    private func updateSummary() {
-        let portfolio = Portfolio(stocks: stocks, currency: selectedCurrency)
+    private func updateSummary() async {
+        var convertedStocks = stocks
+
+        // Convert stock values to selectedCurrency if needed
+        let needsConversion = stocks.contains { stock in
+            guard let stockCurrency = Currency(rawValue: stock.currency) else { return false }
+            return stockCurrency != selectedCurrency
+        }
+
+        if needsConversion {
+            do {
+                try await exchangeRateService.fetchExchangeRates()
+            } catch {
+                AppLogger.portfolio.warning("Failed to fetch exchange rates: \(error.localizedDescription)")
+            }
+
+            for i in convertedStocks.indices {
+                guard let stockCurrency = Currency(rawValue: convertedStocks[i].currency),
+                      stockCurrency != selectedCurrency,
+                      let rate = exchangeRateService.getExchangeRate(from: stockCurrency, to: selectedCurrency) else {
+                    continue
+                }
+
+                if let price = convertedStocks[i].currentPrice {
+                    convertedStocks[i].currentPrice = price * rate
+                }
+                if let prevClose = convertedStocks[i].previousClose {
+                    convertedStocks[i].previousClose = prevClose * rate
+                }
+                for j in convertedStocks[i].lots.indices {
+                    convertedStocks[i].lots[j].pricePerShare *= rate
+                }
+            }
+        }
+
+        let portfolio = Portfolio(stocks: convertedStocks, currency: selectedCurrency)
         summary = PortfolioSummary(portfolio: portfolio)
     }
 
     // MARK: - Currency Toggle
 
-    func toggleCurrency() {
+    func toggleCurrency() async {
         selectedCurrency = (selectedCurrency == .usd) ? .cad : .usd
-        updateSummary()
+        await updateSummary()
     }
 
     // MARK: - Observe Service

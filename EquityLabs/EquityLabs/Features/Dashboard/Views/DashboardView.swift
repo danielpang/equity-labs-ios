@@ -5,6 +5,7 @@ struct DashboardView: View {
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var settingsViewModel = SettingsViewModel()
     @State private var showSubscription = false
 
     var body: some View {
@@ -31,7 +32,8 @@ struct DashboardView: View {
                     portfolioContent
                 }
             }
-            .navigationTitle("Portfolio")
+            .navigationTitle("EquityLabs")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -58,14 +60,17 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.showAddStock) {
                 AddStockView()
             }
-            .sheet(isPresented: $viewModel.showSettings) {
-                SettingsView()
+            .sheet(isPresented: $viewModel.showSettings, onDismiss: {
+                Task {
+                    await viewModel.reloadPreferences()
+                    await settingsViewModel.awaitPendingSync()
+                    await viewModel.loadPortfolio()
+                }
+            }) {
+                SettingsView(viewModel: settingsViewModel)
             }
             .sheet(isPresented: $showSubscription) {
                 SubscriptionView()
-            }
-            .refreshable {
-                await viewModel.refreshPrices()
             }
             .task {
                 if viewModel.stocks.isEmpty {
@@ -84,7 +89,7 @@ struct DashboardView: View {
 
                 // Stock list
                 LazyVStack(spacing: 12) {
-                    ForEach(viewModel.stocks) { stock in
+                    ForEach(viewModel.sortedStocks) { stock in
                         NavigationLink(destination: StockDetailView(stock: stock)) {
                             StockCardView(stock: stock)
                         }
@@ -94,6 +99,9 @@ struct DashboardView: View {
                 .padding(.horizontal)
             }
             .padding(.vertical)
+        }
+        .refreshable {
+            await viewModel.refreshPrices()
         }
         .background(Color.backgroundPrimary)
     }

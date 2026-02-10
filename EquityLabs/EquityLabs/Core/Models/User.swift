@@ -45,28 +45,55 @@ struct User: Codable, Identifiable {
     }
 }
 
+// MARK: - SortBy
+enum SortBy: String, Codable, CaseIterable {
+    case alphabetical
+    case lastUpdated
+
+    var displayName: String {
+        switch self {
+        case .alphabetical: return "Alphabetical"
+        case .lastUpdated: return "Last Updated"
+        }
+    }
+}
+
 // MARK: - UserPreferences
 struct UserPreferences: Codable {
     var currency: Currency
+    var sortBy: SortBy
     var enableNotifications: Bool
     var enableBackgroundRefresh: Bool
     var chartDefaultTimeRange: TimeRange
 
     init(currency: Currency = .usd,
+         sortBy: SortBy = .alphabetical,
          enableNotifications: Bool = true,
          enableBackgroundRefresh: Bool = true,
          chartDefaultTimeRange: TimeRange = .oneMonth) {
         self.currency = currency
+        self.sortBy = sortBy
         self.enableNotifications = enableNotifications
         self.enableBackgroundRefresh = enableBackgroundRefresh
         self.chartDefaultTimeRange = chartDefaultTimeRange
     }
 }
 
+// MARK: - PreferencesResponse
+/// Wrapper for GET /api/preferences response: {"preferences": {"currency": "...", "sortBy": "..."}}
+struct PreferencesResponse: Codable {
+    let preferences: RemotePreferences
+
+    struct RemotePreferences: Codable {
+        let currency: Currency
+        let sortBy: SortBy
+    }
+}
+
 // MARK: - PreferencesUpdate
+/// Currency and sortBy are synced to the backend API.
+/// Other preferences (notifications, background refresh, chart range) are local-only.
 struct PreferencesUpdate: Codable {
     let currency: String?
-    let enableNotifications: Bool?
-    let enableBackgroundRefresh: Bool?
-    let chartDefaultTimeRange: String?
+    let sortBy: String?
 }

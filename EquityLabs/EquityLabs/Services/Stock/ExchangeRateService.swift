@@ -36,11 +36,17 @@ class ExchangeRateService: ObservableObject {
         do {
             let response: ExchangeRateResponse = try await apiClient.request(.exchangeRate)
 
-            self.rates = response.rates
+            // API returns a single USD→CAD rate. Build rates dict with USD as base.
+            let ratesDict: [String: Double] = [
+                Currency.usd.rawValue: 1.0,
+                Currency.cad.rawValue: response.rate
+            ]
+
+            self.rates = ratesDict
             self.lastUpdated = Date()
 
-            cacheRates(response.rates)
-            AppLogger.portfolio.info("Fetched exchange rates: \(response.rates.count) currencies")
+            cacheRates(ratesDict)
+            AppLogger.portfolio.info("Fetched exchange rate: USD→CAD = \(response.rate)")
         } catch {
             AppLogger.portfolio.error("Failed to fetch exchange rates: \(error.localizedDescription)")
             self.error = error
@@ -181,15 +187,7 @@ class ExchangeRateService: ObservableObject {
 // MARK: - Exchange Rate Response
 
 private struct ExchangeRateResponse: Codable {
-    let base: String
-    let rates: [String: Double]
-    let timestamp: TimeInterval?
-
-    enum CodingKeys: String, CodingKey {
-        case base
-        case rates
-        case timestamp
-    }
+    let rate: Double
 }
 
 // MARK: - ExchangeRateError
