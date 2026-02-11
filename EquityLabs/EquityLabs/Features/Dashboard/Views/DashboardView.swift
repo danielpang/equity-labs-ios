@@ -11,14 +11,16 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.isLoading {
+                if viewModel.isLoading && viewModel.stocks.isEmpty {
                     LoadingView(message: "Loading portfolio...")
-                } else if let error = viewModel.error {
+                        .transition(.opacity)
+                } else if let error = viewModel.error, viewModel.stocks.isEmpty {
                     ErrorView(error: error) {
                         Task {
                             await viewModel.loadPortfolio()
                         }
                     }
+                    .transition(.opacity)
                 } else if viewModel.stocks.isEmpty {
                     EmptyStateView(
                         icon: "chart.line.uptrend.xyaxis",
@@ -28,15 +30,20 @@ struct DashboardView: View {
                     ) {
                         viewModel.showAddStock = true
                     }
+                    .transition(.opacity)
                 } else {
                     portfolioContent
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: Constants.Animation.standard), value: viewModel.isLoading)
+            .animation(.easeInOut(duration: Constants.Animation.standard), value: viewModel.stocks.isEmpty)
             .navigationTitle("EquityLabs")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        HapticManager.impact(.light)
                         if canAddStock {
                             viewModel.showAddStock = true
                         } else {
@@ -46,15 +53,19 @@ struct DashboardView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                     }
+                    .accessibilityLabel("Add stock")
+                    .accessibilityHint(canAddStock ? "Opens the add stock form" : "Opens subscription options")
                 }
 
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
+                        HapticManager.impact(.light)
                         viewModel.showSettings = true
                     } label: {
                         Image(systemName: "gearshape.fill")
                             .font(.title3)
                     }
+                    .accessibilityLabel("Settings")
                 }
             }
             .sheet(isPresented: $viewModel.showAddStock) {
@@ -94,14 +105,20 @@ struct DashboardView: View {
                             StockCardView(stock: stock)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .trailing)),
+                            removal: .opacity.combined(with: .move(edge: .leading))
+                        ))
                     }
                 }
+                .animation(.easeInOut(duration: Constants.Animation.standard), value: viewModel.sortedStocks.map(\.id))
                 .padding(.horizontal)
             }
             .padding(.vertical)
         }
         .refreshable {
             await viewModel.refreshPrices()
+            HapticManager.notification(.success)
         }
     }
 

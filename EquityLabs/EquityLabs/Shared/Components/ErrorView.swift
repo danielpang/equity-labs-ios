@@ -13,8 +13,9 @@ struct ErrorView: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
+                .font(.largeTitle)
                 .foregroundColor(.orange)
+                .accessibilityHidden(true)
 
             Text("Something went wrong")
                 .font(.headline)
@@ -40,6 +41,8 @@ struct ErrorView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Error: \(error.localizedDescription)")
     }
 }
 

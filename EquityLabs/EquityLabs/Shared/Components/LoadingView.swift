@@ -19,6 +19,9 @@ struct LoadingView: View {
         .glassEffect(.regular, in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.ultraThinMaterial)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(message ?? "Loading")
+        .accessibilityAddTraits(.updatesFrequently)
     }
 }
 

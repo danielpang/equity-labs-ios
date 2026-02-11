@@ -6,6 +6,7 @@ struct StockDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showSubscription = false
     @Namespace private var tabNamespace
+    @ScaledMetric(relativeTo: .largeTitle) private var priceSize: CGFloat = 36
 
     init(stock: Stock) {
         _viewModel = StateObject(wrappedValue: StockDetailViewModel(stock: stock))
@@ -77,7 +78,8 @@ struct StockDetailView: View {
             // Current Price
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(viewModel.formatPrice(viewModel.currentPrice))
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.system(size: priceSize, weight: .bold))
+                    .minimumScaleFactor(0.6)
 
                 if let change = viewModel.priceChange,
                    let changePercent = viewModel.priceChangePercent {
@@ -128,6 +130,20 @@ struct StockDetailView: View {
             Divider()
         }
         .padding(.vertical)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(priceHeaderAccessibilityLabel)
+    }
+
+    private var priceHeaderAccessibilityLabel: String {
+        var label = "\(viewModel.stock.symbol), current price \(viewModel.formatPrice(viewModel.currentPrice))"
+        if let change = viewModel.priceChange, let percent = viewModel.priceChangePercent {
+            let direction = change >= 0 ? "up" : "down"
+            label += ", \(direction) \(viewModel.formatPrice(abs(change))), \(viewModel.formatPercent(abs(percent)))"
+        }
+        label += ", total value \(viewModel.formatPrice(viewModel.totalValue))"
+        let plDirection = viewModel.gainLoss >= 0 ? "gain" : "loss"
+        label += ", \(plDirection) \(viewModel.formatPrice(abs(viewModel.gainLoss)))"
+        return label
     }
 
     // MARK: - Tab Selector
@@ -137,6 +153,7 @@ struct StockDetailView: View {
             HStack(spacing: 8) {
                 ForEach(DetailTab.allCases, id: \.self) { tab in
                     Button {
+                        HapticManager.selection()
                         withAnimation(.smooth) {
                             viewModel.selectedTab = tab
                         }
@@ -150,10 +167,14 @@ struct StockDetailView: View {
                             .glassEffect(viewModel.selectedTab == tab ? .regular.interactive() : .clear.interactive(), in: Capsule())
                             .glassEffectID(tab.rawValue, in: tabNamespace)
                     }
+                    .accessibilityLabel("\(tab.rawValue) tab")
+                    .accessibilityAddTraits(viewModel.selectedTab == tab ? .isSelected : [])
                 }
             }
             .padding(.vertical, 4)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Detail tabs")
     }
 
     // MARK: - Tab Content
@@ -178,10 +199,12 @@ struct StockDetailView: View {
                     let tabs = DetailTab.allCases
                     guard let currentIndex = tabs.firstIndex(of: viewModel.selectedTab) else { return }
                     if value.translation.width < 0, currentIndex < tabs.count - 1 {
+                        HapticManager.selection()
                         withAnimation(.smooth) {
                             viewModel.selectedTab = tabs[currentIndex + 1]
                         }
                     } else if value.translation.width > 0, currentIndex > 0 {
+                        HapticManager.selection()
                         withAnimation(.smooth) {
                             viewModel.selectedTab = tabs[currentIndex - 1]
                         }
@@ -285,8 +308,12 @@ struct StockDetailView: View {
     private var newsTab: some View {
         VStack(spacing: 0) {
             if viewModel.isLoadingNews {
-                ProgressView()
-                    .padding()
+                LazyVStack(spacing: 12) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        NewsArticleSkeleton()
+                    }
+                }
+                .padding()
             } else if viewModel.newsArticles.isEmpty {
                 emptyNewsView
             } else {
@@ -298,8 +325,9 @@ struct StockDetailView: View {
     private var emptyNewsView: some View {
         VStack(spacing: 12) {
             Image(systemName: "newspaper")
-                .font(.system(size: 50))
+                .font(.largeTitle)
                 .foregroundColor(.textSecondary)
+                .accessibilityHidden(true)
 
             Text("No News Available")
                 .font(.headline)
@@ -311,6 +339,7 @@ struct StockDetailView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     private var newsListView: some View {
@@ -381,6 +410,8 @@ struct StatCardView: View {
         }
         .padding()
         .glassEffect(.clear, in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
     }
 }
 
@@ -444,6 +475,19 @@ struct NewsArticleCard: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(articleAccessibilityLabel)
+    }
+
+    private var articleAccessibilityLabel: String {
+        var label = "\(article.title), from \(article.source)"
+        if let summary = article.summary {
+            label += ", \(summary)"
+        }
+        if showSentiment, let sentiment = article.sentiment {
+            label += ", sentiment: \(sentiment.label.displayName)"
+        }
+        return label
     }
 
     private func sentimentColor(for label: SentimentLabel) -> Color {

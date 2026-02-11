@@ -46,9 +46,13 @@ extension View {
     // MARK: - Haptic Feedback
     func hapticFeedback(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) -> some View {
         self.onTapGesture {
-            let generator = UIImpactFeedbackGenerator(style: style)
-            generator.impactOccurred()
+            HapticManager.impact(style)
         }
+    }
+
+    // MARK: - Shimmer / Skeleton Loading
+    func shimmer(isActive: Bool = true) -> some View {
+        self.modifier(ShimmerModifier(isActive: isActive))
     }
 
     // MARK: - Hidden Modifier
@@ -133,5 +137,131 @@ struct AsyncButton<Label: View>: View {
             }
         }
         .disabled(isLoading)
+    }
+}
+
+// MARK: - Haptic Manager
+enum HapticManager {
+    static func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
+    }
+
+    static func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(type)
+    }
+
+    static func selection() {
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
+    }
+}
+
+// MARK: - Shimmer Modifier
+struct ShimmerModifier: ViewModifier {
+    let isActive: Bool
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        if isActive {
+            content
+                .overlay(
+                    GeometryReader { geometry in
+                        LinearGradient(
+                            colors: [
+                                .clear,
+                                Color.white.opacity(0.4),
+                                .clear
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: geometry.size.width * 0.6)
+                        .offset(x: -geometry.size.width * 0.3 + phase * (geometry.size.width * 1.6))
+                    }
+                    .clipped()
+                )
+                .onAppear {
+                    withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                        phase = 1
+                    }
+                }
+        } else {
+            content
+        }
+    }
+}
+
+// MARK: - Skeleton View
+struct SkeletonView: View {
+    var height: CGFloat = 16
+    var cornerRadius: CGFloat = 8
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .fill(Color.gray.opacity(0.2))
+            .frame(height: height)
+            .shimmer()
+    }
+}
+
+// MARK: - Stock Card Skeleton
+struct StockCardSkeleton: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Circle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(width: 50, height: 50)
+                .shimmer()
+
+            VStack(alignment: .leading, spacing: 8) {
+                SkeletonView(height: 16)
+                    .frame(width: 80)
+                SkeletonView(height: 12)
+                    .frame(width: 140)
+                SkeletonView(height: 10)
+                    .frame(width: 100)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 8) {
+                SkeletonView(height: 16)
+                    .frame(width: 70)
+                SkeletonView(height: 12)
+                    .frame(width: 50)
+                SkeletonView(height: 10)
+                    .frame(width: 80)
+            }
+        }
+        .padding()
+        .background(Color.backgroundSecondary)
+        .cornerRadius(Constants.Layout.cornerRadius)
+        .accessibilityLabel("Loading stock data")
+    }
+}
+
+// MARK: - News Skeleton
+struct NewsArticleSkeleton: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                SkeletonView(height: 10)
+                    .frame(width: 80)
+                Spacer()
+                SkeletonView(height: 10)
+                    .frame(width: 60)
+            }
+            SkeletonView(height: 16)
+            SkeletonView(height: 12)
+                .frame(width: 250)
+            SkeletonView(height: 24, cornerRadius: 12)
+                .frame(width: 100)
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+        .accessibilityLabel("Loading news article")
     }
 }

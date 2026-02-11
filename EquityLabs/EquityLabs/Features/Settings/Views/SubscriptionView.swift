@@ -52,10 +52,11 @@ struct SubscriptionView: View {
     private var header: some View {
         VStack(spacing: 12) {
             Image(systemName: "crown.fill")
-                .font(.system(size: 60))
+                .font(.largeTitle)
                 .foregroundColor(.orange)
                 .padding(20)
                 .glassEffect(.regular, in: Circle())
+                .accessibilityHidden(true)
 
             Text("Upgrade to Premium")
                 .font(.title)
@@ -79,12 +80,15 @@ struct SubscriptionView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
+                        .accessibilityHidden(true)
 
                     Text(feature)
                         .font(.subheadline)
 
                     Spacer()
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Included: \(feature)")
             }
         }
         .padding()
@@ -173,10 +177,12 @@ struct SubscriptionView: View {
         do {
             try await subscriptionManager.purchase()
             if subscriptionManager.subscriptionState.tier == .paid {
+                HapticManager.notification(.success)
                 dismiss()
             }
         } catch {
             if !(error is CancellationError) {
+                HapticManager.notification(.error)
                 errorMessage = error.localizedDescription
             }
         }

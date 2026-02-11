@@ -23,8 +23,9 @@ struct EmptyStateView: View {
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: icon)
-                .font(.system(size: 64))
+                .font(.system(size: 48))
                 .foregroundColor(.textTertiary)
+                .accessibilityHidden(true)
 
             VStack(spacing: 8) {
                 Text(title)
@@ -53,6 +54,8 @@ struct EmptyStateView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(title). \(message)")
     }
 }
 

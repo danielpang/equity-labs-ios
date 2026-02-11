@@ -43,6 +43,7 @@ struct AddStockView: View {
                     if !viewModel.searchResults.isEmpty {
                         ForEach(viewModel.searchResults) { result in
                             Button {
+                                HapticManager.impact(.light)
                                 viewModel.selectStock(result)
                                 focusedField = .shares
                             } label: {
@@ -78,8 +79,11 @@ struct AddStockView: View {
                             Spacer()
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
+                                .accessibilityHidden(true)
                         }
                         .padding(.vertical, 4)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Selected stock: \(stock.symbol), \(stock.name)")
                     }
                 } header: {
                     Text("Stock")
@@ -177,7 +181,10 @@ struct AddStockView: View {
                         Task {
                             let success = await viewModel.addStock()
                             if success {
+                                HapticManager.notification(.success)
                                 dismiss()
+                            } else {
+                                HapticManager.notification(.error)
                             }
                         }
                     }

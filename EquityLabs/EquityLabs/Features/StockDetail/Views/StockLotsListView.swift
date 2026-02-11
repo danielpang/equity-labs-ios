@@ -136,8 +136,9 @@ struct StockLotsListView: View {
             Spacer()
 
             Image(systemName: "tray")
-                .font(.system(size: 50))
+                .font(.largeTitle)
                 .foregroundColor(.textSecondary)
+                .accessibilityHidden(true)
 
             Text("No Lots Yet")
                 .font(.headline)
@@ -333,6 +334,14 @@ struct LotCardView: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(lotAccessibilityLabel)
+    }
+
+    private var lotAccessibilityLabel: String {
+        let gainLoss = (currentPrice - lot.pricePerShare) * lot.shares
+        let direction = gainLoss >= 0 ? "gain" : "loss"
+        return "\(formatShares(lot.shares)) shares purchased at \(formatPrice(lot.pricePerShare)), \(direction) \(formatPrice(abs(gainLoss)))"
     }
 
     private func formatPrice(_ value: Double) -> String {
