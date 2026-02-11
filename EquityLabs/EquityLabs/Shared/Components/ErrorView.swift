@@ -31,17 +31,15 @@ struct ErrorView: View {
                 } label: {
                     Label("Try Again", systemImage: "arrow.clockwise")
                         .font(.subheadline.bold())
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .cornerRadius(8)
+                        .glassEffect(.regular.interactive(), in: Capsule())
                 }
                 .padding(.top, 8)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.backgroundPrimary)
     }
 }
 

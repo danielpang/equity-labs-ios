@@ -81,6 +81,7 @@ enum Constants {
     // MARK: - Layout
     enum Layout {
         static let cornerRadius: CGFloat = 12
+        static let glassCornerRadius: CGFloat = 20
         static let cardPadding: CGFloat = 16
         static let spacing: CGFloat = 12
         static let iconSize: CGFloat = 24

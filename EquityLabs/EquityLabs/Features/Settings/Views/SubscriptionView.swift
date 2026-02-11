@@ -31,7 +31,6 @@ struct SubscriptionView: View {
                 }
                 .padding()
             }
-            .background(Color.backgroundPrimary)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -55,6 +54,8 @@ struct SubscriptionView: View {
             Image(systemName: "crown.fill")
                 .font(.system(size: 60))
                 .foregroundColor(.orange)
+                .padding(20)
+                .glassEffect(.regular, in: Circle())
 
             Text("Upgrade to Premium")
                 .font(.title)
@@ -87,8 +88,7 @@ struct SubscriptionView: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(16)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
     }
 
     // MARK: - Purchase Section
@@ -114,7 +114,6 @@ struct SubscriptionView: View {
                 Group {
                     if isPurchasing || subscriptionManager.isLoading {
                         ProgressView()
-                            .tint(.white)
                     } else {
                         Text("Subscribe Now")
                             .fontWeight(.semibold)
@@ -122,8 +121,8 @@ struct SubscriptionView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
+                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
             }
-            .buttonStyle(.borderedProminent)
             .disabled(isPurchasing || subscriptionManager.isLoading)
         }
     }

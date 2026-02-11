@@ -58,7 +58,7 @@ struct PortfolioSummaryView: View {
                 )
             }
         }
-        .cardStyle()
+        .glassCardStyle()
     }
 }
 
