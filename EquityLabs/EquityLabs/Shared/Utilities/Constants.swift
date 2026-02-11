@@ -19,7 +19,7 @@ enum Constants {
 
     // MARK: - Subscription
     enum Subscription {
-        static let monthlyProductId = "com.equitylabs.premium.monthly"
+        static let monthlyProductId = "equitylabs.premium.monthly"
         static let freeStockLimit = 5
     }
 

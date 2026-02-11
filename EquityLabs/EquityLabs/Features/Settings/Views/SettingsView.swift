@@ -54,17 +54,7 @@ struct SettingsView: View {
                         }
                     }
 
-                    // Notifications
-                    Toggle("Notifications", isOn: Binding(
-                        get: { viewModel.preferences.enableNotifications },
-                        set: { viewModel.setNotifications($0) }
-                    ))
 
-                    // Background refresh
-                    Toggle("Background Refresh", isOn: Binding(
-                        get: { viewModel.preferences.enableBackgroundRefresh },
-                        set: { viewModel.setBackgroundRefresh($0) }
-                    ))
                 }
 
                 // Subscription section
