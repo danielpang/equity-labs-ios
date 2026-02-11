@@ -108,9 +108,12 @@ struct SettingsView: View {
                 // Sign out section
                 Section {
                     Button("Sign Out") {
+                        HapticManager.impact(.medium)
                         showSignOutConfirmation = true
                     }
                     .foregroundColor(.red)
+                    .accessibilityLabel("Sign out")
+                    .accessibilityHint("Signs you out of your account")
                 }
             }
             .navigationTitle("Settings")

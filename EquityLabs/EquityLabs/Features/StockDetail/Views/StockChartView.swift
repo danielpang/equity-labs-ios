@@ -144,7 +144,17 @@ struct StockChartView: View {
                         selectedPoint = nil
                     }
             }
+            .accessibilityLabel(chartAccessibilityLabel)
         }
+    }
+
+    private var chartAccessibilityLabel: String {
+        guard let first = data.first, let last = data.last else {
+            return "Stock price chart, no data available"
+        }
+        let change = last.close - first.close
+        let direction = change >= 0 ? "up" : "down"
+        return "Stock price chart for \(selectedRange.rawValue) period, \(direction) from $\(String(format: "%.2f", first.close)) to $\(String(format: "%.2f", last.close))"
     }
 
     // MARK: - Loading Chart View
@@ -166,8 +176,9 @@ struct StockChartView: View {
     private var emptyChartView: some View {
         VStack(spacing: 12) {
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 50))
+                .font(.largeTitle)
                 .foregroundColor(.textSecondary)
+                .accessibilityHidden(true)
 
             Text("No Chart Data Available")
                 .font(.headline)
@@ -179,6 +190,7 @@ struct StockChartView: View {
         }
         .frame(height: 300)
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: - Selected Point Info
@@ -211,6 +223,7 @@ struct StockChartView: View {
             HStack(spacing: 6) {
                 ForEach(TimeRange.allCases, id: \.self) { range in
                     Button {
+                        HapticManager.selection()
                         withAnimation(.smooth) {
                             onRangeChange(range)
                         }
@@ -224,10 +237,14 @@ struct StockChartView: View {
                             .glassEffect(selectedRange == range ? .regular.interactive() : .clear.interactive(), in: Capsule())
                             .glassEffectID(range.rawValue, in: rangeNamespace)
                     }
+                    .accessibilityLabel("\(range.rawValue) time range")
+                    .accessibilityAddTraits(selectedRange == range ? .isSelected : [])
                 }
             }
             .padding(.vertical, 4)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Chart time range selector")
     }
 
     // MARK: - Helper Methods

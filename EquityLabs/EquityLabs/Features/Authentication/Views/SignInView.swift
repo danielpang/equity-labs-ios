@@ -9,6 +9,8 @@ struct SignInView: View {
     @State private var showAuthSheet = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @ScaledMetric(relativeTo: .largeTitle) private var logoSize: CGFloat = 80
+    @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
 
     var body: some View {
         ZStack {
@@ -26,19 +28,23 @@ struct SignInView: View {
                 // Logo and title
                 VStack(spacing: 16) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 80))
+                        .font(.system(size: logoSize))
                         .foregroundColor(.white)
                         .padding(24)
                         .glassEffect(.regular, in: Circle())
+                        .accessibilityHidden(true)
 
                     Text("EquityLabs")
-                        .font(.system(size: 48, weight: .bold))
+                        .font(.system(size: titleSize, weight: .bold))
                         .foregroundColor(.white)
+                        .minimumScaleFactor(0.6)
 
                     Text("Track your portfolio with confidence")
                         .font(.title3)
                         .foregroundColor(.white.opacity(0.9))
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("EquityLabs. Track your portfolio with confidence")
 
                 Spacer()
 
@@ -86,8 +92,11 @@ struct SignInView: View {
                     }
                     .padding(.horizontal, 32)
                     .disabled(!authService.isInitialized)
+                    .accessibilityLabel("Sign in with Clerk")
+                    .accessibilityHint(authService.isInitialized ? "Opens the authentication screen" : "Authentication is not yet initialized")
 
                     Button {
+                        HapticManager.impact(.light)
                         // Demo mode for testing
                         Task {
                             try? await authManager.signIn(
@@ -103,6 +112,8 @@ struct SignInView: View {
                             .padding(.vertical, 10)
                             .glassEffect(.clear.interactive(), in: Capsule())
                     }
+                    .accessibilityLabel("Continue as demo user")
+                    .accessibilityHint("Sign in with a demo account for testing")
 
                     Text("Secure authentication powered by Clerk")
                         .font(.caption)

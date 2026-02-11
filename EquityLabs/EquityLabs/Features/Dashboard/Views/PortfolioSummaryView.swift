@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - PortfolioSummaryView
 struct PortfolioSummaryView: View {
     let summary: PortfolioSummary?
+    @ScaledMetric(relativeTo: .largeTitle) private var totalValueSize: CGFloat = 36
 
     var body: some View {
         VStack(spacing: 16) {
@@ -13,8 +14,9 @@ struct PortfolioSummaryView: View {
                     .foregroundColor(.textSecondary)
 
                 Text(summary?.totalValue.toCurrency(currency: summary?.currency ?? .usd) ?? "$0.00")
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.system(size: totalValueSize, weight: .bold))
                     .foregroundColor(.textPrimary)
+                    .minimumScaleFactor(0.6)
 
                 if let dayChange = summary?.totalDayChange,
                    let dayChangePercent = summary?.totalDayChangePercentage {
@@ -33,7 +35,7 @@ struct PortfolioSummaryView: View {
             HStack(spacing: 32) {
                 StatView(
                     title: "Cost",
-                    value: summary?.totalCost.toCurrency(currency: summary?.currency ?? .usd) ?? "$0.00",
+                    value: summary?.totalCost.toCurrency(currency: summary?.currency ?? .usd, decimals: 0) ?? "$0",
                     color: .textSecondary
                 )
 
@@ -42,7 +44,7 @@ struct PortfolioSummaryView: View {
 
                 StatView(
                     title: "P/L",
-                    value: summary?.totalProfitLoss.toCurrency(currency: summary?.currency ?? .usd) ?? "$0.00",
+                    value: summary?.totalProfitLoss.toCurrency(currency: summary?.currency ?? .usd, decimals: 0) ?? "$0",
                     valueColor: summary != nil ? Color.profitLoss(value: summary!.totalProfitLoss) : .textPrimary,
                     subtitle: summary?.totalProfitLossPercentage.toPercentage(),
                     color: .textSecondary
@@ -59,6 +61,22 @@ struct PortfolioSummaryView: View {
             }
         }
         .glassCardStyle()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(summaryAccessibilityLabel)
+    }
+
+    private var summaryAccessibilityLabel: String {
+        guard let summary else { return "Portfolio summary unavailable" }
+        var label = "Total portfolio value \(summary.totalValue.toCurrency(currency: summary.currency))"
+        if let dayChange = summary.totalDayChange {
+            let direction = dayChange >= 0 ? "up" : "down"
+            label += ", \(direction) \(abs(dayChange).toCurrency(currency: summary.currency)) today"
+        }
+        label += ", total cost \(summary.totalCost.toCurrency(currency: summary.currency))"
+        let plDirection = summary.totalProfitLoss >= 0 ? "profit" : "loss"
+        label += ", \(plDirection) \(abs(summary.totalProfitLoss).toCurrency(currency: summary.currency))"
+        label += ", \(summary.stockCount) stocks"
+        return label
     }
 }
 
@@ -79,11 +97,14 @@ private struct StatView: View {
             Text(value)
                 .font(.headline)
                 .foregroundColor(valueColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
 
             if let subtitle = subtitle {
                 Text(subtitle)
                     .font(.caption2)
                     .foregroundColor(valueColor)
+                    .lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity)

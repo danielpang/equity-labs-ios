@@ -80,6 +80,19 @@ struct StockCardView: View {
         .padding()
         .background(Color.backgroundSecondary)
         .cornerRadius(Constants.Layout.cornerRadius)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(stockAccessibilityLabel)
+    }
+
+    private var stockAccessibilityLabel: String {
+        var label = "\(stock.name), \(stock.symbol)"
+        if let price = stock.currentPrice {
+            label += ", current price \(price.toCurrency(currency: Currency(rawValue: stock.currency) ?? .usd))"
+        }
+        label += ", \(stock.totalShares) shares"
+        let plDirection = stock.profitLoss >= 0 ? "gain" : "loss"
+        label += ", \(plDirection) \(abs(stock.profitLoss).toCurrency(currency: Currency(rawValue: stock.currency) ?? .usd))"
+        return label
     }
 }
 
