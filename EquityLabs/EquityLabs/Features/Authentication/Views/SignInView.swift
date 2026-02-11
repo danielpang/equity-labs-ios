@@ -28,6 +28,8 @@ struct SignInView: View {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .font(.system(size: 80))
                         .foregroundColor(.white)
+                        .padding(24)
+                        .glassEffect(.regular, in: Circle())
 
                     Text("EquityLabs")
                         .font(.system(size: 48, weight: .bold))
@@ -52,6 +54,7 @@ struct SignInView: View {
                                 .foregroundColor(.white)
                         }
                         .padding()
+                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 12))
                     }
 
                     if let error = authService.error {
@@ -59,8 +62,7 @@ struct SignInView: View {
                             .font(.caption)
                             .foregroundColor(.red)
                             .padding()
-                            .background(Color.white.opacity(0.9))
-                            .cornerRadius(8)
+                            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal, 32)
                     }
 
@@ -77,11 +79,10 @@ struct SignInView: View {
                             Text("Sign In with Clerk")
                                 .font(.headline)
                         }
-                        .foregroundColor(.blue)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.white)
-                        .cornerRadius(12)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
                     }
                     .padding(.horizontal, 32)
                     .disabled(!authService.isInitialized)
@@ -98,6 +99,9 @@ struct SignInView: View {
                         Text("Continue as Demo")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.9))
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .glassEffect(.clear.interactive(), in: Capsule())
                     }
 
                     Text("Secure authentication powered by Clerk")

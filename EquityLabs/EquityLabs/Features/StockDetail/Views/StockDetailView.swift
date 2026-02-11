@@ -5,33 +5,27 @@ struct StockDetailView: View {
     @StateObject private var viewModel: StockDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showSubscription = false
+    @Namespace private var tabNamespace
 
     init(stock: Stock) {
         _viewModel = StateObject(wrappedValue: StockDetailViewModel(stock: stock))
     }
 
     var body: some View {
-        ZStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Header - Price Info
-                    priceHeader
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header - Price Info
+                priceHeader
 
-                    // Tab Selector
-                    tabSelector
+                // Tab Selector
+                tabSelector
 
-                    // Tab Content
-                    tabContent
-                }
+                // Tab Content
+                tabContent
             }
-            .refreshable {
-                await viewModel.loadData()
-            }
-
-            // Loading Overlay
-            if viewModel.isLoading {
-                LoadingView()
-            }
+        }
+        .refreshable {
+            await viewModel.loadData()
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -46,12 +40,18 @@ struct StockDetailView: View {
             }
 
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task {
-                        await viewModel.refreshPrice()
+                if viewModel.isLoading {
+                    ProgressView()
+                        .transition(.opacity)
+                } else {
+                    Button {
+                        Task {
+                            await viewModel.refreshPrice()
+                        }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
                     }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+                    .transition(.opacity)
                 }
             }
         }
@@ -128,46 +128,66 @@ struct StockDetailView: View {
             Divider()
         }
         .padding(.vertical)
-        .background(Color(.systemBackground))
     }
 
     // MARK: - Tab Selector
 
     private var tabSelector: some View {
-        HStack(spacing: 0) {
-            ForEach(DetailTab.allCases, id: \.self) { tab in
-                Button {
-                    viewModel.selectedTab = tab
-                } label: {
-                    VStack(spacing: 8) {
+        GlassEffectContainer {
+            HStack(spacing: 8) {
+                ForEach(DetailTab.allCases, id: \.self) { tab in
+                    Button {
+                        withAnimation(.smooth) {
+                            viewModel.selectedTab = tab
+                        }
+                    } label: {
                         Text(tab.rawValue)
                             .font(.subheadline)
                             .fontWeight(viewModel.selectedTab == tab ? .semibold : .regular)
-                            .foregroundColor(viewModel.selectedTab == tab ? .accentColor : .textSecondary)
-
-                        Rectangle()
-                            .fill(viewModel.selectedTab == tab ? Color.accentColor : Color.clear)
-                            .frame(height: 2)
+                            .foregroundColor(viewModel.selectedTab == tab ? .primary : .textSecondary)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .glassEffect(viewModel.selectedTab == tab ? .regular.interactive() : .clear.interactive(), in: Capsule())
+                            .glassEffectID(tab.rawValue, in: tabNamespace)
                     }
                 }
-                .frame(maxWidth: .infinity)
             }
+            .padding(.vertical, 4)
         }
-        .background(Color(.systemBackground))
     }
 
     // MARK: - Tab Content
 
     @ViewBuilder
     private var tabContent: some View {
-        switch viewModel.selectedTab {
-        case .overview:
-            overviewTab
-        case .lots:
-            lotsTab
-        case .news:
-            newsTab
+        Group {
+            switch viewModel.selectedTab {
+            case .overview:
+                overviewTab
+            case .lots:
+                lotsTab
+            case .news:
+                newsTab
+            }
         }
+        .gesture(
+            DragGesture(minimumDistance: 50, coordinateSpace: .local)
+                .onEnded { value in
+                    // Only trigger for mostly-horizontal swipes
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                    let tabs = DetailTab.allCases
+                    guard let currentIndex = tabs.firstIndex(of: viewModel.selectedTab) else { return }
+                    if value.translation.width < 0, currentIndex < tabs.count - 1 {
+                        withAnimation(.smooth) {
+                            viewModel.selectedTab = tabs[currentIndex + 1]
+                        }
+                    } else if value.translation.width > 0, currentIndex > 0 {
+                        withAnimation(.smooth) {
+                            viewModel.selectedTab = tabs[currentIndex - 1]
+                        }
+                    }
+                }
+        )
     }
 
     // MARK: - Overview Tab
@@ -179,6 +199,7 @@ struct StockDetailView: View {
                 data: viewModel.historicalData,
                 lots: viewModel.stock.lots,
                 selectedRange: viewModel.selectedTimeRange,
+                isLoading: viewModel.isLoading || viewModel.isLoadingHistory,
                 onRangeChange: { range in
                     Task {
                         await viewModel.changeTimeRange(range)
@@ -359,8 +380,7 @@ struct StatCardView: View {
                 .fontWeight(.semibold)
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
+        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
     }
 }
 

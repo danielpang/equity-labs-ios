@@ -44,17 +44,15 @@ struct EmptyStateView: View {
                 } label: {
                     Text(actionTitle)
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                        .glassEffect(.regular.interactive(), in: Capsule())
                 }
                 .padding(.top, 8)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.backgroundPrimary)
     }
 }
 

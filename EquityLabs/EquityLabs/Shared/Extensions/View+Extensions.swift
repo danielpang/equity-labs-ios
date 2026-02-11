@@ -61,13 +61,28 @@ extension View {
         }
     }
 
-    // MARK: - Navigation Bar Colors
+    // MARK: - Glass Styling
+    func glassCardStyle() -> some View {
+        self
+            .padding(Constants.Layout.cardPadding)
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
+    }
+
+    func glassTabStyle() -> some View {
+        self
+            .padding(Constants.Layout.cardPadding)
+            .glassEffect(.regular.interactive(), in: Capsule())
+    }
+
+    // MARK: - Navigation Bar Colors (Deprecated)
+    @available(*, deprecated, message: "No longer needed — iOS 26 glass nav bars are automatic")
     func navigationBarColors(backgroundColor: UIColor, titleColor: UIColor) -> some View {
         self.modifier(NavigationBarColorModifier(backgroundColor: backgroundColor, titleColor: titleColor))
     }
 }
 
-// MARK: - Navigation Bar Color Modifier
+// MARK: - Navigation Bar Color Modifier (Deprecated)
+@available(*, deprecated, message: "No longer needed — iOS 26 glass nav bars are automatic")
 struct NavigationBarColorModifier: ViewModifier {
     let backgroundColor: UIColor
     let titleColor: UIColor
@@ -75,16 +90,6 @@ struct NavigationBarColorModifier: ViewModifier {
     init(backgroundColor: UIColor, titleColor: UIColor) {
         self.backgroundColor = backgroundColor
         self.titleColor = titleColor
-
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = backgroundColor
-        appearance.titleTextAttributes = [.foregroundColor: titleColor]
-        appearance.largeTitleTextAttributes = [.foregroundColor: titleColor]
-
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 
     func body(content: Content) -> some View {

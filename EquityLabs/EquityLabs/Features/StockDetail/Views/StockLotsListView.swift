@@ -127,7 +127,6 @@ struct StockLotsListView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
     }
 
     // MARK: - Empty State
@@ -154,11 +153,10 @@ struct StockLotsListView: View {
             } label: {
                 Text("Add Lot")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .frame(maxWidth: 200)
                     .padding()
-                    .background(Color.accentColor)
-                    .cornerRadius(12)
+                    .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
             }
             .padding(.top, 8)
 
@@ -188,11 +186,10 @@ struct StockLotsListView: View {
                 Text("Add Another Lot")
             }
             .font(.headline)
-            .foregroundColor(.accentColor)
+            .foregroundColor(.primary)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.accentColor.opacity(0.1))
-            .cornerRadius(12)
+            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
         }
     }
 

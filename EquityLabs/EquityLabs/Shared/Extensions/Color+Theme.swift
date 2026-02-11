@@ -26,6 +26,10 @@ extension Color {
     static let sentimentNeutral = Color.gray
     static let sentimentNegative = Color.red
 
+    // MARK: - Glass Colors
+    static let glassContentBackground = Color(uiColor: .secondarySystemBackground).opacity(0.7)
+    static let glassPrimaryTint = Color.accentColor
+
     // MARK: - Chart Colors
     static let chartLine = Color.blue
     static let chartFill = Color.blue.opacity(0.2)

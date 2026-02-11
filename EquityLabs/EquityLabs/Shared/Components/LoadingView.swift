@@ -15,8 +15,10 @@ struct LoadingView: View {
                     .foregroundColor(.textSecondary)
             }
         }
+        .padding(24)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: Constants.Layout.glassCornerRadius))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.backgroundPrimary.opacity(0.9))
+        .background(.ultraThinMaterial)
     }
 }
 

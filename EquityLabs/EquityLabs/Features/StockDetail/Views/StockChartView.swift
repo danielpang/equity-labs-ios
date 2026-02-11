@@ -6,14 +6,18 @@ struct StockChartView: View {
     let data: [HistoricalDataPoint]
     let lots: [StockLot]
     let selectedRange: TimeRange
+    let isLoading: Bool
     let onRangeChange: (TimeRange) -> Void
 
     @State private var selectedPoint: HistoricalDataPoint?
+    @Namespace private var rangeNamespace
 
     var body: some View {
         VStack(spacing: 16) {
             // Chart
-            if data.isEmpty {
+            if isLoading && data.isEmpty {
+                loadingChartView
+            } else if data.isEmpty {
                 emptyChartView
             } else {
                 chartView
@@ -143,6 +147,20 @@ struct StockChartView: View {
         }
     }
 
+    // MARK: - Loading Chart View
+
+    private var loadingChartView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("Loading chart data...")
+                .font(.subheadline)
+                .foregroundColor(.textSecondary)
+        }
+        .frame(height: 300)
+        .frame(maxWidth: .infinity)
+    }
+
     // MARK: - Empty Chart View
 
     private var emptyChartView: some View {
@@ -189,25 +207,26 @@ struct StockChartView: View {
     // MARK: - Time Range Selector
 
     private var timeRangeSelector: some View {
-        HStack(spacing: 8) {
-            ForEach(TimeRange.allCases, id: \.self) { range in
-                Button {
-                    onRangeChange(range)
-                } label: {
-                    Text(range.rawValue)
-                        .font(.caption)
-                        .fontWeight(selectedRange == range ? .bold : .regular)
-                        .foregroundColor(selectedRange == range ? .white : .accentColor)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(selectedRange == range ? Color.accentColor : Color.clear)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.accentColor, lineWidth: 1)
-                        )
+        GlassEffectContainer {
+            HStack(spacing: 6) {
+                ForEach(TimeRange.allCases, id: \.self) { range in
+                    Button {
+                        withAnimation(.smooth) {
+                            onRangeChange(range)
+                        }
+                    } label: {
+                        Text(range.rawValue)
+                            .font(.caption)
+                            .fontWeight(selectedRange == range ? .bold : .regular)
+                            .foregroundColor(selectedRange == range ? .primary : .secondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .glassEffect(selectedRange == range ? .regular.interactive() : .clear.interactive(), in: Capsule())
+                            .glassEffectID(range.rawValue, in: rangeNamespace)
+                    }
                 }
             }
+            .padding(.vertical, 4)
         }
     }
 
@@ -311,6 +330,7 @@ struct StockChartView: View {
         data: sampleData,
         lots: sampleLots,
         selectedRange: .oneMonth,
+        isLoading: false,
         onRangeChange: { _ in }
     )
 }

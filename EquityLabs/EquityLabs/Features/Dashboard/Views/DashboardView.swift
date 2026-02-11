@@ -103,7 +103,6 @@ struct DashboardView: View {
         .refreshable {
             await viewModel.refreshPrices()
         }
-        .background(Color.backgroundPrimary)
     }
 
     private var canAddStock: Bool {
