@@ -1,0 +1,23 @@
+continue with Phase 8 of @IMPLEMENTATION_CHECKLIST.md and check off completed tasks
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+in the summary view, cost and P/L numbers can be too long, causing the numbers to wrap around. Can we
+1. drop the decimal cents (just round up if >= .5, round down otherwise)
+2. ensure numbers are always on the same line (no text wrapping)
+
+---
+
+[Image: source: /Users/d_pang/Downloads/Screenshot 2026-02-11 at 12.08.55 AM.png]
+
+---
+
+in preferences remove the "Notifications" and "background refresh" buttons. currently we don't offer either
+
+---
+
+update subscription product ID to "equitylabs.premium.monthly"
